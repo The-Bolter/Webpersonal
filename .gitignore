@@ -25,4 +25,4 @@ Thumbs.db
 .idea/
 
 # Claude 本地缓存（可选）
-.claude/cache/
+.claude/
