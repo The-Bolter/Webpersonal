@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "title": "AI Code Assistant",
+    "description": "A VS Code extension leveraging LLMs for context-aware code suggestions, intelligent refactoring, and automated documentation generation.",
+    "tags": ["TypeScript", "OpenAI API", "VS Code SDK"],
+    "image": "",
+    "github": "https://github.com",
+    "demo": "https://example.com",
+    "featured": true
+  },
+  {
+    "id": 2,
+    "title": "E-Commerce Analytics Dashboard",
+    "description": "Real-time analytics platform with interactive D3.js charts, order tracking, and smart inventory management.",
+    "tags": ["Vue 3", "D3.js", "Node.js", "PostgreSQL"],
+    "image": "",
+    "github": "https://github.com",
+    "demo": "https://example.com",
+    "featured": true
+  },
+  {
+    "id": 3,
+    "title": "Smart City IoT Platform",
+    "description": "IoT data visualization platform processing real-time sensor data with predictive analytics powered by TensorFlow.",
+    "tags": ["React", "Python", "MQTT", "TensorFlow"],
+    "image": "",
+    "github": "https://github.com",
+    "demo": null,
+    "featured": false
+  },
+  {
+    "id": 4,
+    "title": "Portfolio Generator CLI",
+    "description": "A command-line tool that generates beautiful personal portfolio websites from a simple JSON config — built for speed and aesthetics.",
+    "tags": ["Node.js", "Vue.js", "CLI", "Templates"],
+    "image": "",
+    "github": "https://github.com",
+    "demo": null,
+    "featured": false
+  }
+]

@@ -1,0 +1,291 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   Museum Editorial — Ink & Paper Design System
+   ============================================ */
+
+:root {
+  /* Paper palette — calibrated from reference: warm aged rice paper */
+  --paper-light: #eadcc5;
+  --paper: #e5d5bd;
+  --paper-dark: #d9c5a5;
+  --paper-aged: #d1bb9a;
+  --paper-edge: #c3a682;
+
+  /* Ink palette — warm sepia/brown, not green */
+  --ink-dark: #3d392d;
+  --ink: #5b5345;
+  --ink-light: #8a8072;
+  --ink-green: #7a6b55;
+  --ink-moss: #8d7d68;
+
+  /* Bark accents — warm brown */
+  --bark-light: #b8a48e;
+  --bark: #9a846e;
+  --bark-dark: #6b5a48;
+
+  /* Typography */
+  --font-editorial: 'Fraunces', 'Georgia', 'Times New Roman', serif;
+  --font-body: 'Fraunces', 'Georgia', 'Times New Roman', serif;
+  --font-label: 'Inter', system-ui, sans-serif;
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+  --space-4xl: 10rem;
+  --space-section: 12rem;
+
+  /* Layout */
+  --max-width: 1100px;
+  --nav-height: 64px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 4px rgba(58, 51, 46, 0.03);
+  --shadow-sm: 0 2px 12px rgba(58, 51, 46, 0.05);
+  --shadow-md: 0 4px 24px rgba(58, 51, 46, 0.07);
+  --shadow-lg: 0 8px 40px rgba(58, 51, 46, 0.09);
+
+  /* Transitions */
+  --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 0.4s;
+  --dur-base: 0.7s;
+  --dur-slow: 1.2s;
+  --dur-breath: 4s;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: auto;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--paper);
+  color: var(--ink);
+  line-height: 1.8;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-editorial);
+  font-weight: 400;
+  line-height: 1.25;
+  color: var(--ink-dark);
+}
+
+h1 { font-size: clamp(2.8rem, 5vw, 4.2rem); letter-spacing: 0.02em; }
+h2 { font-size: clamp(2.2rem, 3.5vw, 3.2rem); letter-spacing: 0.03em; }
+h3 { font-size: clamp(1.4rem, 2vw, 1.8rem); letter-spacing: 0.04em; }
+h4 { font-size: 1.1rem; letter-spacing: 0.05em; }
+
+p {
+  color: var(--ink-light);
+  line-height: 1.85;
+}
+
+a {
+  color: var(--ink-green);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+a:hover { color: var(--ink); }
+
+img { max-width: 100%; height: auto; display: block; }
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: var(--font-label);
+}
+
+ul { list-style: none; }
+
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--space-xl);
+}
+
+/* Editorial section labels */
+.editorial-label {
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--bark);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  margin-bottom: var(--space-sm);
+}
+
+/* Editorial title */
+.editorial-title {
+  font-family: var(--font-editorial);
+  font-weight: 400;
+  color: var(--ink-dark);
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+}
+
+.editorial-title em {
+  color: var(--ink-green);
+}
+
+/* Museum label card */
+.museum-label {
+  background: rgba(234, 220, 197, 0.55);
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(168, 157, 140, 0.15);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--dur-base) var(--ease-out),
+              box-shadow var(--dur-base) var(--ease-out),
+              background var(--dur-base) var(--ease-out);
+}
+
+.museum-label:hover {
+  border-color: rgba(161, 134, 111, 0.3);
+  box-shadow: var(--shadow-md);
+  background: rgba(234, 220, 197, 0.7);
+}
+
+/* Editorial nav link */
+.nav-editorial {
+  font-family: var(--font-editorial);
+  font-size: 1.05rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: var(--ink);
+  transition: color var(--dur-fast) var(--ease-out);
+  position: relative;
+}
+
+.nav-editorial::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--ink-green);
+  transition: width var(--dur-base) var(--ease-out);
+}
+
+.nav-editorial:hover { color: var(--ink-dark); }
+.nav-editorial:hover::after { width: 100%; }
+
+/* Button — restrained editorial */
+.btn-editorial {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-label);
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--paper-light);
+  background: var(--ink);
+  padding: 0.65rem 1.8rem;
+  border-radius: 2px;
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+  text-transform: uppercase;
+}
+
+.btn-editorial:hover {
+  background: var(--ink-green);
+  color: var(--paper-light);
+}
+
+/* Breathing animation */
+.breathing {
+  animation: breathe 6s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.96; }
+  50% { opacity: 1; }
+}
+
+/* Ink scroll reveal — blur to sharp on scroll, like ink spreading */
+.ink-reveal {
+  opacity: 0;
+  filter: blur(10px);
+  transform: translateY(20px);
+  transition: opacity 1.2s var(--ease-out),
+              filter 1.2s var(--ease-out),
+              transform 1.2s var(--ease-out);
+}
+
+.ink-reveal.ink-revealed {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0);
+}
+
+.ink-reveal-delay-1 { transition-delay: 0.1s; }
+.ink-reveal-delay-2 { transition-delay: 0.25s; }
+.ink-reveal-delay-3 { transition-delay: 0.4s; }
+.ink-reveal-delay-4 { transition-delay: 0.55s; }
+
+/* Loading screen */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  transition: opacity 0.8s var(--ease-out), visibility 0.8s var(--ease-out);
+}
+
+.loading-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loading-logo {
+  font-family: var(--font-editorial);
+  font-size: 2rem;
+  color: var(--ink-green);
+  animation: inkFade 3s ease-in-out infinite;
+}
+
+@keyframes inkFade {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+/* Scrollbar — barely visible */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bark-light); border-radius: 2px; }
+
+@media (max-width: 768px) {
+  .container { padding: 0 var(--space-lg); }
+}

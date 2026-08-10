@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <defs>
+    <filter id="fogBlur"><feGaussianBlur stdDeviation="60"/></filter>
+    <filter id="fogSoft"><feGaussianBlur stdDeviation="80"/></filter>
+  </defs>
+  <!-- Large atmospheric fog blocks -->
+  <ellipse cx="150" cy="400" rx="300" ry="180" fill="#a4a690" opacity="0.06" filter="url(#fogSoft)"/>
+  <ellipse cx="650" cy="200" rx="250" ry="150" fill="#b8ad98" opacity="0.05" filter="url(#fogSoft)"/>
+  <ellipse cx="400" cy="500" rx="400" ry="120" fill="#9a9885" opacity="0.04" filter="url(#fogBlur)"/>
+  <ellipse cx="700" cy="450" rx="200" ry="130" fill="#b5a990" opacity="0.04" filter="url(#fogBlur)"/>
+  <ellipse cx="200" cy="100" rx="250" ry="100" fill="#a8a692" opacity="0.03" filter="url(#fogSoft)"/>
+</svg>

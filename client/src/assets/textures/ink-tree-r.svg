@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="800" viewBox="0 0 400 800">
+  <defs>
+    <filter id="treeBlur"><feGaussianBlur stdDeviation="0.6"/></filter>
+    <filter id="treeSoft"><feGaussianBlur stdDeviation="3"/></filter>
+  </defs>
+  <!-- Dry tree /枯树 silhouette on right side -->
+  <g opacity="0.16">
+    <!-- Main trunk -->
+    <path d="M300 820 Q290 700 275 580 Q260 460 255 380 Q250 300 260 240 Q270 180 285 130 Q295 90 300 40" stroke="#4a5140" stroke-width="3.5" fill="none" stroke-linecap="round" filter="url(#treeBlur)"/>
+    <!-- Branches left -->
+    <path d="M275 580 Q250 540 220 510 Q190 480 160 465" stroke="#4a5140" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M160 465 Q140 455 120 455" stroke="#4a5140" stroke-width="1" fill="none" stroke-linecap="round"/>
+    <path d="M160 465 Q155 475 148 490" stroke="#3d4335" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+    <path d="M255 380 Q235 350 210 330 Q190 315 170 310" stroke="#4a5140" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M260 240 Q240 215 225 200" stroke="#4a5140" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M260 240 Q275 225 290 215" stroke="#3d4335" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    <!-- Branches right -->
+    <path d="M270 350 Q290 320 320 305" stroke="#3d4335" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    <path d="M280 250 Q300 230 330 220" stroke="#4a5140" stroke-width="1" fill="none" stroke-linecap="round"/>
+    <!-- Higher fine branches -->
+    <path d="M285 130 Q270 115 255 105 Q240 95 230 80" stroke="#4a5140" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    <path d="M285 130 Q295 115 310 105 Q325 95 340 80" stroke="#3d4335" stroke-width="1" fill="none" stroke-linecap="round"/>
+    <!-- Ink wash at base -->
+    <ellipse cx="300" cy="800" rx="60" ry="30" fill="#4a5140" opacity="0.1" filter="url(#treeSoft)"/>
+    <ellipse cx="280" cy="550" rx="25" ry="15" fill="#3d4335" opacity="0.06" filter="url(#treeSoft)"/>
+    <!-- Dry leaves / specks -->
+    <circle cx="120" cy="453" r="3" fill="#5a624e" opacity="0.12"/>
+    <circle cx="230" cy="78" r="2.5" fill="#4a5140" opacity="0.10"/>
+    <circle cx="340" cy="78" r="2" fill="#3d4335" opacity="0.10"/>
+    <circle cx="170" cy="308" r="2" fill="#4a5140" opacity="0.08"/>
+  </g>
+</svg>

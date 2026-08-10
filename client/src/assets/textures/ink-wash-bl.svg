@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="500" viewBox="0 0 600 500">
+  <defs>
+    <filter id="washBlur1"><feGaussianBlur stdDeviation="40"/></filter>
+    <filter id="washBlur2"><feGaussianBlur stdDeviation="25"/></filter>
+    <filter id="washBlur3"><feGaussianBlur stdDeviation="60"/></filter>
+  </defs>
+  <!-- Bottom-left ink wash / diffusion -->
+  <ellipse cx="100" cy="450" rx="180" ry="120" fill="#7a8b6f" opacity="0.14" filter="url(#washBlur3)"/>
+  <ellipse cx="160" cy="420" rx="120" ry="80" fill="#6b7f62" opacity="0.10" filter="url(#washBlur1)"/>
+  <ellipse cx="50" cy="400" rx="100" ry="90" fill="#8d9a84" opacity="0.08" filter="url(#washBlur2)"/>
+  <ellipse cx="200" cy="380" rx="90" ry="60" fill="#a1866f" opacity="0.06" filter="url(#washBlur1)"/>
+  <!-- Small pigment deposits -->
+  <circle cx="80" cy="460" r="30" fill="#556b4f" opacity="0.08" filter="url(#washBlur2)"/>
+  <circle cx="220" cy="440" r="20" fill="#7d6553" opacity="0.05" filter="url(#washBlur2)"/>
+</svg>

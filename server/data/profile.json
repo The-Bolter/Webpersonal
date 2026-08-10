@@ -1,0 +1,30 @@
+{
+  "name": "Alex Chen",
+  "tagline": "Creative Developer & AI Enthusiast",
+  "initials": "AC",
+  "bio": [
+    "I craft digital experiences at the intersection of code, design, and artificial intelligence. With a passion for vibecoding and rapid prototyping, I turn bold ideas into polished, working products.",
+    "My approach combines deep technical knowledge with a designer's eye — because great software should work flawlessly and feel beautiful. Every pixel, every interaction, every line of code is an opportunity to make something memorable."
+  ],
+  "skills": [
+    "Vue.js / React",
+    "Node.js / Express",
+    "Python",
+    "AI / LLM Integration",
+    "UI/UX Design",
+    "Rapid Prototyping",
+    "Vibecoding",
+    "Figma",
+    "Git / CI/CD"
+  ],
+  "stats": {
+    "projects": "10+",
+    "internships": "3",
+    "years": "2+"
+  },
+  "social": {
+    "github": "https://github.com",
+    "linkedin": "https://linkedin.com",
+    "email": "hello@alexchen.dev"
+  }
+}

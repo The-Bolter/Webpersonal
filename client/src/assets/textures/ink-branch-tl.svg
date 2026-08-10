@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="500" viewBox="0 0 600 500">
+  <defs>
+    <filter id="inkBlur">
+      <feGaussianBlur stdDeviation="0.5"/>
+    </filter>
+    <filter id="inkSoft">
+      <feGaussianBlur stdDeviation="2"/>
+    </filter>
+  </defs>
+  <!-- Main branch -->
+  <g opacity="0.22">
+    <path d="M-10 160 Q40 142 80 110 Q130 70 180 55 Q240 38 290 20" stroke="#4a5c3f" stroke-width="2.5" fill="none" stroke-linecap="round" filter="url(#inkBlur)"/>
+    <path d="M80 110 Q110 95 150 80" stroke="#4a5c3f" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M150 80 Q180 72 200 60" stroke="#4a5c3f" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    <path d="M150 80 Q155 95 148 110" stroke="#4a5c3f" stroke-width="1" fill="none" stroke-linecap="round"/>
+    <path d="M180 55 Q195 50 215 48" stroke="#3d4f34" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+    <path d="M215 48 Q230 42 245 30" stroke="#3d4f34" stroke-width="1" fill="none" stroke-linecap="round"/>
+    <path d="M215 48 Q225 55 238 62" stroke="#4a5c3f" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+    <!-- Ink washes at branch junctions -->
+    <ellipse cx="80" cy="112" rx="18" ry="12" fill="#5a6b4e" opacity="0.12" filter="url(#inkSoft)"/>
+    <ellipse cx="150" cy="78" rx="14" ry="10" fill="#4a5c3f" opacity="0.10" filter="url(#inkSoft)"/>
+    <ellipse cx="215" cy="50" rx="12" ry="8" fill="#3d4f34" opacity="0.08" filter="url(#inkSoft)"/>
+    <!-- Small dots / buds -->
+    <circle cx="290" cy="18" r="3" fill="#5a6b4e" opacity="0.15"/>
+    <circle cx="245" cy="28" r="2" fill="#4a5c3f" opacity="0.12"/>
+    <circle cx="200" cy="58" r="2.5" fill="#5a6b4e" opacity="0.10"/>
+  </g>
+</svg>
