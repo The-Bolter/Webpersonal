@@ -15,9 +15,15 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
 const visible = ref(false)
+let rafPending = false
 
 function onScroll() {
-  visible.value = window.scrollY > 800
+  if (rafPending) return
+  rafPending = true
+  requestAnimationFrame(() => {
+    rafPending = false
+    visible.value = window.scrollY > 800
+  })
 }
 
 function scrollToTop() {

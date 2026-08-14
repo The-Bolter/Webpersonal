@@ -10,7 +10,7 @@
         </transition>
       </router-view>
     </main>
-    <AppFooter />
+    <AppFooter v-if="$route.path !== '/'" />
     <ScrollToTop />
   </div>
 </template>
@@ -31,7 +31,9 @@ const store = useAppStore()
 useLenis()
 
 onMounted(() => {
-  setTimeout(() => store.finishLoading(), 1800)
+  // Safety net only — must NOT fire before the LoadingScreen timeline ends.
+  // LoadingScreen calls finishLoading() itself via GSAP onComplete (~5.9s).
+  setTimeout(() => store.finishLoading(), 10000)
 })
 </script>
 

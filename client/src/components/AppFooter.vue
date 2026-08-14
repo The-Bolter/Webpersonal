@@ -8,16 +8,16 @@
       <div class="footer-links">
         <div class="footer-group">
           <p class="footer-group-label">The Atelier</p>
-          <a href="#about" @click.prevent="scrollTo('about')">Philosophy</a>
-          <a href="#projects" @click.prevent="scrollTo('projects')">Collection</a>
-          <a href="#works" @click.prevent="scrollTo('works')">Archive</a>
+          <router-link to="/about">ABOUT</router-link>
+          <router-link to="/projects">PROJECTS</router-link>
+          <router-link to="/studio">STUDIO</router-link>
         </div>
 
         <div class="footer-group">
           <p class="footer-group-label">Connect</p>
-          <a :href="`mailto:${store.profile.social.email}`">Correspondence</a>
-          <a :href="store.profile.social.github" target="_blank" rel="noopener">Studio</a>
-          <a :href="store.profile.social.linkedin" target="_blank" rel="noopener">Network</a>
+          <a :href="`mailto:${store.profile.social.email}`">CONTACT</a>
+          <a :href="store.profile.social.github" target="_blank" rel="noopener">GitHub</a>
+          <a :href="store.profile.social.linkedin" target="_blank" rel="noopener">LinkedIn</a>
         </div>
       </div>
     </div>
@@ -34,11 +34,6 @@ import { useAppStore } from '../store'
 
 const store = useAppStore()
 const year = computed(() => new Date().getFullYear())
-
-function scrollTo(id) {
-  const el = document.getElementById(id)
-  if (el) el.scrollIntoView({ behavior: 'smooth' })
-}
 </script>
 
 <style scoped>
@@ -88,6 +83,7 @@ function scrollTo(id) {
   padding: 0.25rem 0;
   letter-spacing: 0.04em;
   transition: color var(--dur-fast) var(--ease-out);
+  text-decoration: none;
 }
 
 .footer-group a:hover { color: var(--ink-dark); }

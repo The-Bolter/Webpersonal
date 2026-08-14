@@ -1,20 +1,28 @@
 <template>
-  <nav class="app-nav" :class="{ scrolled: isScrolled, 'menu-open': store.isMenuOpen }">
+  <nav class="app-nav" :class="{ 'menu-open': store.isMenuOpen }">
     <div class="nav-inner">
-      <a href="#hero" class="nav-museum-name" @click="scrollToSection('hero')">
-        The Curator's Log
-      </a>
+      <router-link to="/" class="nav-logo" @click="store.closeMenu">
+        <img
+          src="@/assets/images/branding/catherinesstudio.png"
+          alt="Catherine's Studio"
+        />
+      </router-link>
 
       <!-- Desktop links -->
       <div class="nav-links-desktop">
-        <a
+        <router-link
           v-for="link in links"
-          :key="link.id"
-          :href="`#${link.id}`"
+          :key="link.to"
+          :to="link.to"
           class="nav-editorial-link"
-          :class="{ active: store.activeSection === link.id }"
-          @click.prevent="scrollToSection(link.id)"
-        >{{ link.label }}</a>
+          :class="{ active: $route.path === link.to, synced: link.key && store.hoveredId === link.key }"
+          @click="store.closeMenu"
+          @mouseenter="link.key && store.setHovered(link.key)"
+          @mouseleave="store.clearHovered"
+        >
+          <span class="nav-label-en">{{ link.en }}</span>
+          <span class="nav-label-cn">{{ link.cn }}</span>
+        </router-link>
       </div>
 
       <!-- Menu toggle -->
@@ -30,52 +38,35 @@
 
     <!-- Mobile menu panel -->
     <div class="nav-links-mobile" :class="{ active: store.isMenuOpen }">
-      <a
+      <router-link
         v-for="(link, i) in links"
-        :key="link.id"
-        :href="`#${link.id}`"
+        :key="link.to"
+        :to="link.to"
         class="mobile-link"
-        :class="{ active: store.activeSection === link.id }"
+        :class="{ active: $route.path === link.to }"
         :style="{ transitionDelay: store.isMenuOpen ? `${0.1 + i * 0.08}s` : '0s' }"
-        @click.prevent="scrollToSection(link.id)"
-      >{{ link.label }}</a>
+        @click="store.closeMenu"
+      >
+        <span class="nav-label-en">{{ link.en }}</span>
+        <span class="nav-label-cn">{{ link.cn }}</span>
+      </router-link>
     </div>
   </nav>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
 import { useAppStore } from '../store'
 
 const store = useAppStore()
-const isScrolled = ref(false)
 
 const links = [
-  { id: 'about', label: 'Philosophy' },
-  { id: 'projects', label: 'Collection' },
-  { id: 'resume', label: 'Provenance' },
-  { id: 'works', label: 'Archive' },
-  { id: 'contact', label: 'Correspondence' }
+  { to: '/', en: 'INDEX', cn: '首页', key: null },
+  { to: '/projects', en: 'PROJECTS', cn: '项目档案', key: 'projects' },
+  { to: '/journey', en: 'JOURNEY', cn: '成长轨迹', key: 'journey' },
+  { to: '/studio', en: 'STUDIO', cn: '创意档案', key: 'studio' },
+  { to: '/about', en: 'ABOUT', cn: '关于我', key: 'about' },
+  { to: '/contact', en: 'CONTACT', cn: '建立连接', key: 'contact' }
 ]
-
-function scrollToSection(id) {
-  store.closeMenu()
-  const el = document.getElementById(id)
-  if (el) el.scrollIntoView({ behavior: 'smooth' })
-}
-
-function onScroll() {
-  isScrolled.value = window.scrollY > 60
-  const sections = document.querySelectorAll('section[id]')
-  let current = 'hero'
-  sections.forEach(s => {
-    if (window.scrollY >= s.offsetTop - 150) current = s.getAttribute('id')
-  })
-  store.setActiveSection(current)
-}
-
-onMounted(() => window.addEventListener('scroll', onScroll, { passive: true }))
-onUnmounted(() => window.removeEventListener('scroll', onScroll))
 </script>
 
 <style scoped>
@@ -84,13 +75,6 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
   top: 0; left: 0; right: 0;
   z-index: 1000;
   height: var(--nav-height);
-  transition: background 0.6s var(--ease-out), box-shadow 0.6s var(--ease-out);
-}
-
-.app-nav.scrolled {
-  background: rgba(229, 213, 189, 0.5);
-  backdrop-filter: blur(4px);
-  box-shadow: 0 1px 0 rgba(139, 132, 120, 0.04);
 }
 
 .nav-inner {
@@ -98,39 +82,55 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
   align-items: center;
   justify-content: space-between;
   height: 100%;
-  max-width: var(--max-width);
-  margin: 0 auto;
-  padding: 0 var(--space-xl);
+  width: 100%;
+  padding: 0 var(--space-2xl);
 }
 
-.nav-museum-name {
-  font-family: var(--font-editorial);
-  font-size: 1.25rem;
-  font-weight: 400;
-  color: var(--ink-dark);
-  letter-spacing: 0.04em;
-  transition: color var(--dur-fast) var(--ease-out);
+.nav-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
 }
 
-.nav-museum-name:hover { color: var(--ink-green); }
+.nav-logo img {
+  width: 500px;
+  height: auto;
+  display: block;
+  margin-top: 15px;
+}
 
 /* Desktop links */
 .nav-links-desktop {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 2.8rem;
+  justify-content: space-evenly;
+  padding-left: var(--space-xl);
 }
 
 .nav-editorial-link {
   font-family: var(--font-editorial);
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   font-weight: 400;
   color: var(--ink-light);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   position: relative;
   padding: 0.2rem 0;
+  text-decoration: none;
   transition: color var(--dur-fast) var(--ease-out),
               letter-spacing var(--dur-base) var(--ease-out);
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.nav-label-cn {
+  font-family: var(--font-label);
+  font-size: 0.7rem;
+  color: var(--bark);
+  letter-spacing: 0.12em;
+  text-transform: none;
 }
 
 .nav-editorial-link::after {
@@ -145,7 +145,7 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
 
 .nav-editorial-link:hover {
   color: var(--ink-dark);
-  letter-spacing: 0.09em;
+  letter-spacing: 0.11em;
 }
 
 .nav-editorial-link.active {
@@ -154,6 +154,18 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
 
 .nav-editorial-link:hover::after,
 .nav-editorial-link.active::after {
+  width: 100%;
+}
+
+.nav-editorial-link.synced {
+  color: var(--ink-dark);
+}
+
+.nav-editorial-link.synced .nav-label-en {
+  opacity: 1;
+}
+
+.nav-editorial-link.synced::after {
   width: 100%;
 }
 
@@ -207,6 +219,20 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
   display: none;
 }
 
+@media (max-width: 960px) {
+  .nav-inner {
+    padding: 0 var(--space-lg);
+  }
+
+  .nav-links-desktop {
+    gap: 1.2rem;
+  }
+
+  .nav-editorial-link {
+    font-size: 1rem;
+  }
+}
+
 @media (max-width: 768px) {
   .nav-links-desktop { display: none; }
   .menu-toggle { display: flex; }
@@ -234,7 +260,6 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
     transition: transform 0.5s cubic-bezier(0.22, 0.03, 0.26, 1);
   }
 
-  /* Staggered link reveal */
   .mobile-link {
     font-family: var(--font-editorial);
     font-size: 1.25rem;
@@ -247,6 +272,10 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
                 transform 0.5s var(--ease-out),
                 color var(--dur-fast) var(--ease-out);
     transition-delay: 0s;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
 
   .nav-links-mobile.active .mobile-link {
@@ -257,6 +286,14 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
   .mobile-link:hover,
   .mobile-link.active {
     color: var(--ink-green);
+  }
+
+  .mobile-link .nav-label-cn {
+    font-family: var(--font-label);
+    font-size: 0.7rem;
+    color: var(--bark);
+    letter-spacing: 0.1em;
+    text-transform: none;
   }
 }
 </style>

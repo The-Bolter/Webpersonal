@@ -1,31 +1,40 @@
 import { onMounted, onUnmounted } from 'vue'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
+
+gsap.registerPlugin(ScrollTrigger)
 
 export function useLenis() {
   let lenis = null
-  let rafId = null
-
-  function onFrame(time) {
-    if (lenis) lenis.raf(time)
-    rafId = requestAnimationFrame(onFrame)
-  }
+  let cleanup = null
 
   onMounted(() => {
     lenis = new Lenis({
-      duration: 1.6,
+      duration: 1.1,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
-      wheelMultiplier: 0.8,
+      wheelMultiplier: 0.9,
       touchMultiplier: 1.5,
       infinite: false,
     })
 
-    rafId = requestAnimationFrame(onFrame)
+    lenis.on('scroll', ScrollTrigger.update)
+
+    const tick = (time) => {
+      lenis.raf(time * 1000)
+    }
+    gsap.ticker.add(tick)
+    gsap.ticker.lagSmoothing(0)
+
+    cleanup = () => {
+      gsap.ticker.remove(tick)
+    }
   })
 
   onUnmounted(() => {
+    if (cleanup) cleanup()
     if (lenis) lenis.destroy()
-    if (rafId) cancelAnimationFrame(rafId)
   })
 
   return { lenis }

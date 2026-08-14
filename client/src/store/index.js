@@ -2,9 +2,10 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
 export const useAppStore = defineStore('app', () => {
-  const activeSection = ref('hero')
   const isMenuOpen = ref(false)
   const isLoading = ref(true)
+  const hoveredId = ref(null)
+  const ripple = ref(null)
 
   const profile = ref({
     name: 'Catherine (Cathy)',
@@ -123,15 +124,20 @@ export const useAppStore = defineStore('app', () => {
     return works.value.filter(w => w.category === workFilter.value)
   })
 
-  function setActiveSection(section) { activeSection.value = section }
   function toggleMenu() { isMenuOpen.value = !isMenuOpen.value }
   function closeMenu() { isMenuOpen.value = false }
   function finishLoading() { isLoading.value = false }
+  function setHovered(id) { hoveredId.value = id }
+  function clearHovered() { hoveredId.value = null }
+  function triggerRipple(id, x, y, strength = 1) {
+    ripple.value = { id, x, y, strength, t: Date.now() }
+  }
 
   return {
-    activeSection, isMenuOpen, isLoading,
+    isMenuOpen, isLoading, hoveredId, ripple,
     profile, projects, resume, works,
     workFilter, filteredWorks, featuredProject, otherProjects,
-    setActiveSection, toggleMenu, closeMenu, finishLoading
+    toggleMenu, closeMenu, finishLoading,
+    setHovered, clearHovered, triggerRipple
   }
 })
