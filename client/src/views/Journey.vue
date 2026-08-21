@@ -92,8 +92,9 @@ const summaryPos = computed(() => {
   const n = hoverIndex.value >= 0 ? nodes[hoverIndex.value] : null
   if (!n) return {}
   const x = parseFloat(n.x)
-  // card to the right of the node
-  return { left: (x + 9) + '%', top: n.y }
+  // card to the right of the node, clamped to avoid overflow
+  const left = Math.min(x + 9, 62)
+  return { left: left + '%', top: n.y }
 })
 
 function toggleNode(i) {
@@ -389,7 +390,7 @@ onUnmounted(() => {
   transform: translateY(-50%);
   z-index: 5;
   width: min(600px, 80vw);
-  max-height: 250vh;
+  max-height: 78vh;
   overflow-y: auto;
   padding: var(--space-2xl);
   background: linear-gradient(rgba(246, 238, 224, 0.78), rgba(246, 238, 224, 0.78)),
@@ -480,6 +481,23 @@ onUnmounted(() => {
   }
   .summary-card {
     width: 60vw;
+  }
+  .node-label {
+    margin-left: var(--space-md);
+  }
+  .node-year {
+    font-size: 0.7rem;
+  }
+  .node-title {
+    font-size: 0.82rem;
+    white-space: normal;
+    max-width: 120px;
+    line-height: 1.4;
+  }
+  .node-halo {
+    width: 60px;
+    height: 60px;
+    margin: -30px 0 0 -30px;
   }
 }
 </style>

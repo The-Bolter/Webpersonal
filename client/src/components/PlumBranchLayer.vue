@@ -80,7 +80,7 @@ onMounted(() => {
 
   // Wind — outer sway (pivot at root, top-right)
   windTl = gsap.timeline({
-    delay: 5.5,
+    delay: 0.5,
     repeat: -1,
     repeatDelay: 1,
     defaults: { ease: 'sine.inOut' }
@@ -95,7 +95,7 @@ onMounted(() => {
 
   // Drift — secondary layer, not synchronized
   driftTl = gsap.timeline({
-    delay: 5.8,
+    delay: 0.8,
     repeat: -1,
     repeatDelay: 1.1,
     defaults: { ease: 'sine.inOut' }

@@ -144,11 +144,11 @@ function buildTimeline() {
   )
 
   // Text 2 — "Welcome to my studio." after line-1 fully appears.
-  // Continuous fade in + gentle 9px drift up (1.9 → 3.4s).
+  // Continuous fade in + gentle 9px drift up (1.9 → 3.0s).
   tl.fromTo(
     '.line-2',
     { opacity: 0, y: 9 },
-    { opacity: 1, y: 0, duration: 1.5, ease: 'power2.out' },
+    { opacity: 1, y: 0, duration: 1.1, ease: 'power2.out' },
     1.9
   )
 

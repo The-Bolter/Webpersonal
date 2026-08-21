@@ -93,7 +93,7 @@ const links = [
 }
 
 .nav-logo img {
-  width: 500px;
+  width: clamp(180px, 28vw, 500px);
   height: auto;
   display: block;
   margin-top: 15px;
@@ -233,7 +233,7 @@ const links = [
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .nav-links-desktop { display: none; }
   .menu-toggle { display: flex; }
 

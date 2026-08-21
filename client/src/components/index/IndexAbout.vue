@@ -23,44 +23,51 @@ const keys = ['产品思维', 'AI 实践', '数据意识', '视觉审美', '快�
 <style scoped>
 .sheet-eyebrow {
   font-family: var(--font-label);
-  font-size: 0.66rem;
+  font-size: 0.72rem;
   color: var(--bark);
   letter-spacing: 0.28em;
   margin: 0 0 var(--space-lg);
+  text-shadow: 0 1px 10px rgba(252, 247, 238, 0.6);
 }
 
 .about-intro {
   font-family: var(--font-body);
-  font-size: 0.9rem;
-  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--ink-dark);
   line-height: 1.9;
   margin: 0 0 var(--space-lg);
+  text-shadow: 0 1px 10px rgba(252, 247, 238, 0.6);
 }
 
 .about-keys {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.5rem;
   margin-bottom: var(--space-lg);
 }
 
 .key {
   font-family: var(--font-label);
-  font-size: 0.66rem;
-  color: var(--ink-green);
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--ink-dark);
   letter-spacing: 0.08em;
-  padding: 0.2rem 0.7rem;
-  border: 1px solid rgba(139, 132, 120, 0.28);
+  padding: 0.25rem 0.8rem;
+  border: 1px solid rgba(139, 132, 120, 0.35);
   border-radius: 999px;
+  text-shadow: 0 1px 8px rgba(252, 247, 238, 0.5);
 }
 
 .about-note {
   font-family: var(--font-editorial);
-  font-size: 0.9rem;
+  font-size: 0.98rem;
   font-style: italic;
-  color: var(--ink-light);
+  color: var(--ink);
   line-height: 1.8;
   margin: 0 0 var(--space-lg);
+  text-shadow: 0 1px 10px rgba(252, 247, 238, 0.6);
 }
 
 .sheet-more {
@@ -68,10 +75,11 @@ const keys = ['产品思维', 'AI 实践', '数据意识', '视觉审美', '快�
   align-items: center;
   gap: 0.4rem;
   font-family: var(--font-label);
-  font-size: 0.7rem;
+  font-size: 0.74rem;
   color: var(--ink);
   letter-spacing: 0.12em;
   text-decoration: none;
+  text-shadow: 0 1px 10px rgba(252, 247, 238, 0.6);
   transition: color var(--dur-fast) var(--ease-out);
 }
 

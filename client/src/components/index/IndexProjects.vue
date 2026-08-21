@@ -28,16 +28,18 @@ const projects = [
 <style scoped>
 .sheet-eyebrow {
   font-family: var(--font-label);
-  font-size: 0.66rem;
+  font-size: 0.72rem;
   color: var(--bark);
   letter-spacing: 0.28em;
   margin: 0 0 var(--space-lg);
+  text-shadow: 0 1px 10px rgba(252, 247, 238, 0.6);
 }
 
 .proj-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-lg);
+  text-align: left;
 }
 
 .proj-item {
@@ -54,34 +56,40 @@ const projects = [
 
 .proj-title {
   font-family: var(--font-editorial);
-  font-size: 1.05rem;
-  font-weight: 400;
+  font-size: 1.1rem;
+  font-weight: 500;
   color: var(--ink-dark);
   margin: 0 0 0.35rem;
+  text-shadow: 0 1px 10px rgba(252, 247, 238, 0.6);
 }
 
 .proj-tags {
   font-family: var(--font-label);
-  font-size: 0.62rem;
+  font-size: 0.66rem;
+  font-weight: 500;
   color: var(--ink-green);
   letter-spacing: 0.1em;
   margin: 0 0 0.5rem;
+  text-shadow: 0 1px 8px rgba(252, 247, 238, 0.5);
 }
 
 .proj-desc {
   font-family: var(--font-body);
-  font-size: 0.8rem;
-  color: var(--ink-light);
+  font-size: 0.86rem;
+  font-weight: 400;
+  color: var(--ink);
   line-height: 1.7;
   margin: 0 0 var(--space-md);
   flex: 1;
+  text-shadow: 0 1px 10px rgba(252, 247, 238, 0.5);
 }
 
 .proj-link {
   font-family: var(--font-label);
-  font-size: 0.66rem;
+  font-size: 0.7rem;
   color: var(--ink);
   letter-spacing: 0.1em;
+  text-shadow: 0 1px 8px rgba(252, 247, 238, 0.5);
 }
 
 .proj-item:hover .proj-link {

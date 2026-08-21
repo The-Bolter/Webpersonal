@@ -29,16 +29,18 @@ const timeline = [
 <style scoped>
 .sheet-eyebrow {
   font-family: var(--font-label);
-  font-size: 0.66rem;
+  font-size: 0.72rem;
   color: var(--bark);
   letter-spacing: 0.28em;
   margin: 0 0 var(--space-xl);
+  text-shadow: 0 1px 10px rgba(252, 247, 238, 0.6);
 }
 
 .tl {
   position: relative;
   padding-left: var(--space-lg);
   margin-bottom: var(--space-lg);
+  text-align: left;
 }
 
 .tl::before {
@@ -69,18 +71,21 @@ const timeline = [
 
 .tl-period {
   font-family: var(--font-label);
-  font-size: 0.64rem;
+  font-size: 0.7rem;
+  font-weight: 500;
   color: var(--bark);
   letter-spacing: 0.12em;
   margin: 0 0 0.25rem;
+  text-shadow: 0 1px 8px rgba(252, 247, 238, 0.5);
 }
 
 .tl-title {
   font-family: var(--font-editorial);
-  font-size: 1rem;
-  font-weight: 400;
-  color: var(--ink);
+  font-size: 1.06rem;
+  font-weight: 500;
+  color: var(--ink-dark);
   margin: 0;
+  text-shadow: 0 1px 10px rgba(252, 247, 238, 0.6);
 }
 
 .sheet-more {
@@ -88,10 +93,11 @@ const timeline = [
   align-items: center;
   gap: 0.4rem;
   font-family: var(--font-label);
-  font-size: 0.7rem;
+  font-size: 0.74rem;
   color: var(--ink);
   letter-spacing: 0.12em;
   text-decoration: none;
+  text-shadow: 0 1px 10px rgba(252, 247, 238, 0.6);
   transition: color var(--dur-fast) var(--ease-out);
 }
 

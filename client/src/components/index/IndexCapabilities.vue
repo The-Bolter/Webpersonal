@@ -22,37 +22,42 @@ const caps = [
 <style scoped>
 .sheet-eyebrow {
   font-family: var(--font-label);
-  font-size: 0.66rem;
+  font-size: 0.72rem;
   color: var(--bark);
   letter-spacing: 0.28em;
   margin: 0 0 var(--space-xl);
+  text-shadow: 0 1px 10px rgba(252, 247, 238, 0.6);
 }
 
 .cap-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0 var(--space-xl);
+  text-align: left;
 }
 
 .cap-item {
   padding: var(--space-md) 0;
-  border-top: 1px solid rgba(139, 132, 120, 0.16);
+  border-top: 1px solid rgba(139, 132, 120, 0.2);
 }
 
 .cap-title {
   font-family: var(--font-editorial);
-  font-size: 1.05rem;
-  font-weight: 400;
+  font-size: 1.12rem;
+  font-weight: 500;
   color: var(--ink-dark);
   margin: 0 0 0.3rem;
+  text-shadow: 0 1px 10px rgba(252, 247, 238, 0.6);
 }
 
 .cap-desc {
   font-family: var(--font-body);
-  font-size: 0.82rem;
-  color: var(--ink-light);
+  font-size: 0.88rem;
+  font-weight: 400;
+  color: var(--ink);
   line-height: 1.7;
   margin: 0;
+  text-shadow: 0 1px 10px rgba(252, 247, 238, 0.5);
 }
 
 @media (max-width: 768px) {

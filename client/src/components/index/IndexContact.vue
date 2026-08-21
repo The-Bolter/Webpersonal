@@ -34,24 +34,27 @@ const store = useAppStore()
 <style scoped>
 .sheet-eyebrow {
   font-family: var(--font-label);
-  font-size: 0.66rem;
+  font-size: 0.72rem;
   color: var(--bark);
   letter-spacing: 0.28em;
   margin: 0 0 var(--space-lg);
+  text-shadow: 0 1px 10px rgba(252, 247, 238, 0.6);
 }
 
 .contact-intro {
   font-family: var(--font-body);
-  font-size: 0.88rem;
-  color: var(--ink-light);
+  font-size: 0.98rem;
+  color: var(--ink-dark);
   line-height: 1.9;
   margin: 0 0 var(--space-lg);
+  text-shadow: 0 1px 10px rgba(252, 247, 238, 0.6);
 }
 
 .contact-list {
   display: flex;
   flex-direction: column;
   margin-bottom: var(--space-lg);
+  text-align: left;
 }
 
 .contact-row {
@@ -59,7 +62,7 @@ const store = useAppStore()
   align-items: baseline;
   gap: var(--space-md);
   padding: 0.6rem 0;
-  border-bottom: 1px solid rgba(139, 132, 120, 0.15);
+  border-bottom: 1px solid rgba(139, 132, 120, 0.2);
   text-decoration: none;
   transition: opacity var(--dur-fast) var(--ease-out);
 }
@@ -70,7 +73,8 @@ const store = useAppStore()
 
 .row-label {
   font-family: var(--font-label);
-  font-size: 0.66rem;
+  font-size: 0.7rem;
+  font-weight: 500;
   color: var(--bark);
   letter-spacing: 0.12em;
   min-width: 60px;
@@ -79,8 +83,9 @@ const store = useAppStore()
 
 .row-value {
   font-family: var(--font-body);
-  font-size: 0.88rem;
-  color: var(--ink);
+  font-size: 0.92rem;
+  color: var(--ink-dark);
+  text-shadow: 0 1px 8px rgba(252, 247, 238, 0.5);
 }
 
 .sheet-more {
@@ -88,10 +93,11 @@ const store = useAppStore()
   align-items: center;
   gap: 0.4rem;
   font-family: var(--font-label);
-  font-size: 0.7rem;
+  font-size: 0.74rem;
   color: var(--ink);
   letter-spacing: 0.12em;
   text-decoration: none;
+  text-shadow: 0 1px 10px rgba(252, 247, 238, 0.6);
   transition: color var(--dur-fast) var(--ease-out);
 }
 
