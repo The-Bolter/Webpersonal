@@ -28,7 +28,7 @@ import AtmosphereLayer from './AtmosphereLayer.vue'
 
 <style scoped>
 .background-system {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
@@ -48,7 +48,7 @@ import AtmosphereLayer from './AtmosphereLayer.vue'
 
 /* Layer 4: Grain */
 .bg-grain {
-  position: fixed;
+  position: absolute;
   z-index: 5;
   mix-blend-mode: soft-light;
   opacity: 0.18;

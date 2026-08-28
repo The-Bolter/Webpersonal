@@ -10,26 +10,26 @@ export const useAppStore = defineStore('app', () => {
   const profile = ref({
     name: 'Catherine (Cathy)',
     bio: [
-      'I craft digital spaces where code meets contemplation — interfaces that breathe, typography that whispers, and interactions that feel like turning the page of a well-loved book.',
-      'Rooted in full-stack development, branching into AI and design, every project is a study in balance: logic and beauty, speed and stillness, tradition and innovation.'
+      '我关注 AI 产品、智能工作流与增长实践，持续探索如何用产品思维解决问题，用创造力把想法真正落地。',
+      '从全栈开发出发，延伸到 AI 与设计，每一个项目都在寻找逻辑与美感、速度与留白、传承与创新之间的平衡。'
     ],
     skills: [
       'Vue.js', 'React', 'Node.js', 'Python',
-      'AI / LLM Integration', 'UI/UX Design',
-      'Rapid Prototyping', 'Figma', 'Git / CI/CD'
+      'AI / LLM 集成', 'UI/UX 设计',
+      '快速原型', 'Figma', 'Git / CI/CD'
     ],
     philosophy: [
       {
-        title: 'Scholarship',
-        text: 'Every piece is informed by the quiet hum of scholarship — in people, nature, art, across generations. Knowledge is the soil from which meaningful work grows.'
+        title: '学习',
+        text: '每一件作品都源于对人、自然、艺术与跨代际知识的安静汲取。知识是让有意义的工作得以生长的土壤。'
       },
       {
-        title: 'Teachery',
-        text: 'We reject the flat, digital aesthetic, favoring grain, depth, and the soul found in the imperfections of the handmade. The human hand leaves a mark no algorithm can replicate.'
+        title: '实践',
+        text: '我们拒绝扁平的数字质感，偏爱颗粒、层次与手作的不完美中所蕴含的灵魂。人手留下的痕迹，是算法无法复刻的。'
       },
       {
-        title: 'Curation',
-        text: 'Not a filter, but a pathway. Each project is chosen not for the moment, but for the resonance of its relevance and the story it tells.'
+        title: '创造',
+        text: '不是筛选，而是一条路径。每个项目被选择，不是因为它属于当下，而是因为它的相关性与它讲述的故事。'
       }
     ],
     social: {

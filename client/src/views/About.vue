@@ -8,31 +8,45 @@
     <!-- Subtle readability veil -->
     <div class="page-veil" aria-hidden="true"></div>
 
-    <!-- Content -->
-    <div class="page-content">
+    <!-- Content (independent scroll layer) -->
+    <div class="page-content" data-lenis-prevent>
       <AboutSection />
     </div>
   </div>
 </template>
 
 <script setup>
+import { onMounted, onUnmounted } from 'vue'
 import bgSrc from '../assets/pages/about.png'
 import AboutSection from '../components/AboutSection.vue'
 import { useInkReveal } from '../composables/useInkReveal'
 
 useInkReveal()
+
+onMounted(() => {
+  document.documentElement.classList.add('about-page-active')
+  document.body.classList.add('about-page-active')
+})
+
+onUnmounted(() => {
+  document.documentElement.classList.remove('about-page-active')
+  document.body.classList.remove('about-page-active')
+})
 </script>
 
 <style scoped>
 .about-page {
   position: relative;
-  min-height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
 }
 
 .page-bg {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
+  overflow: hidden;
   pointer-events: none;
 }
 
@@ -44,7 +58,7 @@ useInkReveal()
 }
 
 .page-veil {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
@@ -54,5 +68,18 @@ useInkReveal()
 .page-content {
   position: relative;
   z-index: 1;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.page-content::-webkit-scrollbar {
+  width: 4px;
+}
+.page-content::-webkit-scrollbar-thumb {
+  background: rgba(139, 132, 120, 0.25);
+  border-radius: 2px;
 }
 </style>

@@ -1,355 +1,362 @@
 <template>
   <div class="projects-page">
-    <!-- Fixed landscape background -->
-    <div class="project-bg" aria-hidden="true">
-      <img :src="bgSrc" alt="" />
+    <!-- Scene coordinate box (matches background cover box exactly) -->
+    <div class="scene-box">
+      <!-- Unified background frame (dark + lit share one coordinate space) -->
+      <div class="bg-frame">
+        <!-- Dark background -->
+        <img ref="darkRef" class="bg-img bg-dark" :src="darkSrc" :style="darkRegStyle" alt="" aria-hidden="true" />
+        <!-- Lit background (registration base) -->
+        <img ref="litRef" class="bg-img bg-lit" :src="litSrc" alt="" aria-hidden="true" />
+      </div>
+      <!-- Fog layer (disperses after lighting) -->
+      <img ref="fogRef" class="bg-img bg-fog" :src="fogSrc" alt="" aria-hidden="true" />
+
+      <!-- Lamp core flash (small, bound to lamp shade) -->
+      <div ref="coreRef" class="lamp-core" :class="{ hovered: lampHover }" :style="lampStyle" aria-hidden="true"></div>
+
+      <!-- Guide text (shares lamp anchor) -->
+      <p
+        ref="guideRef"
+        class="guide-text"
+        :class="{ hovered: lampHover }"
+        :style="guideStyle"
+        @click="toggleScene"
+      >点亮灯火，看看我的作品。</p>
+
+      <!-- Lamp hotspot (transparent, shares lamp anchor) -->
+      <div
+        class="lamp-hotspot"
+        :style="hotspotStyle"
+        @click="toggleScene"
+        @mouseenter="lampHover = true"
+        @mouseleave="lampHover = false"
+      ></div>
     </div>
 
-    <!-- Dark overlay (initial dim) -->
-    <div ref="overlayRef" class="dark-overlay" aria-hidden="true"></div>
-
-    <!-- Pavilion glow -->
-    <div ref="pavilionRef" class="pavilion-glow" aria-hidden="true"></div>
-
-    <!-- Lamp glow (breathing) -->
-    <div ref="lampGlowRef" class="lamp-glow" aria-hidden="true"></div>
-
-    <!-- Guide text (clickable invitation) -->
-    <p
-      v-if="!isLit"
-      ref="guideRef"
-      class="guide-text"
-      @click="lightUp"
-    >点亮灯火，走进我的作品。</p>
-
-    <!-- Lamp hot zone -->
-    <div
-      v-if="!isLit"
-      class="lamp-zone"
-      @click="lightUp"
-      @mouseenter="lampHover = true"
-      @mouseleave="lampHover = false"
-    ></div>
-
-    <!-- Central content (hidden until lighting) -->
-    <div ref="contentRef" class="content-wrapper">
-      <div class="content-sheet">
-        <p class="content-eyebrow">PROJECTS</p>
-        <h1 class="content-title">精选项目</h1>
-        <p class="content-intro">这里记录我真正参与、设计和做出来的事情。</p>
-
-        <div class="project-list">
-          <article
-            v-for="p in projects"
-            :key="p.title"
-            class="project-item"
-            @click="openProject = p"
-          >
-            <div class="project-head">
-              <span class="project-num">{{ p.num }}</span>
-              <div>
-                <h3 class="project-title">{{ p.title }}</h3>
-                <p class="project-tags">{{ p.tags }}</p>
-              </div>
-            </div>
-            <p class="project-desc">{{ p.desc }}</p>
-          </article>
+    <!-- Central content -->
+    <div ref="contentLayerRef" class="content-layer">
+      <h1 ref="titleRef" class="content-title">我的项目</h1>
+      <p ref="subRef" class="content-sub">从问题出发，把想法真正做出来。</p>
+      <div class="project-list">
+        <div
+          v-for="(p, i) in projects"
+          :key="p.num"
+          class="project-item"
+          :ref="el => setProjRef(el, i)"
+        >
+          <span class="project-num">{{ p.num }}</span>
+          <div class="project-body">
+            <h3 class="project-title">{{ p.title }}</h3>
+            <p class="project-tags">{{ p.tags }}</p>
+          </div>
         </div>
       </div>
     </div>
-
-    <!-- Project detail panel -->
-    <transition name="detail">
-      <div v-if="openProject" class="detail-panel">
-        <button class="detail-close" @click="openProject = null" aria-label="关闭">×</button>
-        <p class="detail-eyebrow">{{ openProject.num }}</p>
-        <h2 class="detail-title">{{ openProject.title }}</h2>
-        <p class="detail-tags">{{ openProject.tags }}</p>
-        <dl class="detail-fields">
-          <div v-for="f in detailFields" :key="f.key" class="detail-field">
-            <dt class="detail-label">{{ f.label }}</dt>
-            <dd class="detail-value">{{ openProject[f.key] || '占位内容，待补充' }}</dd>
-          </div>
-        </dl>
-      </div>
-    </transition>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import gsap from 'gsap'
-import bgSrc from '../assets/pages/project.png'
+import darkSrc from '../assets/pages/projects/projects-dark.png'
+import litSrc from '../assets/pages/projects/projects-lit.png'
+import fogSrc from '../assets/pages/projects/projects-fog.png'
 
-const isLit = ref(false)
+const sceneState = ref('dark') // 'dark' | 'transitioning' | 'lit'
 const lampHover = ref(false)
-const openProject = ref(null)
-const overlayRef = ref(null)
-const lampGlowRef = ref(null)
-const pavilionRef = ref(null)
+
+const darkRef = ref(null)
+const litRef = ref(null)
+const fogRef = ref(null)
+const coreRef = ref(null)
 const guideRef = ref(null)
-const contentRef = ref(null)
-let lightTl = null
+const titleRef = ref(null)
+const subRef = ref(null)
+const contentLayerRef = ref(null)
+const projRefs = [ref(null), ref(null), ref(null)]
+
+let projectsTimeline = null
+
+// Lamp anchor in design coordinates (1912x948 design canvas), centralized for easy tuning
+const PROJECTS_SCENE = {
+  baseWidth: 1912,
+  baseHeight: 948,
+  lamp: {
+    x: 190,
+    y: 620,
+    hotspotWidth: 90,
+    hotspotHeight: 130,
+    guideOffsetX: 100,
+    guideOffsetY: 5
+  }
+}
+
+// Convert design px to percentages (shared by lamp, hotspot, guide)
+const L = PROJECTS_SCENE.lamp
+const pct = (v, base) => (v / base) * 100
+const lampX = pct(L.x, PROJECTS_SCENE.baseWidth)         // 9.94%
+const lampY = pct(L.y, PROJECTS_SCENE.baseHeight)        // 65.40%
+const hotW = pct(L.hotspotWidth, PROJECTS_SCENE.baseWidth)   // 4.71%
+const hotH = pct(L.hotspotHeight, PROJECTS_SCENE.baseHeight) // 13.71%
+const guideOffX = pct(L.guideOffsetX, PROJECTS_SCENE.baseWidth)  // 5.23%
+const guideOffY = pct(L.guideOffsetY, PROJECTS_SCENE.baseHeight) // 0.53%
+
+// Shared anchor styles — lamp core / hotspot / guide all derive from PROJECTS_SCENE.lamp
+const lampStyle = { left: lampX + '%', top: lampY + '%' }
+const hotspotStyle = { left: lampX + '%', top: lampY + '%', width: hotW + '%', height: hotH + '%' }
+const guideStyle = { left: (lampX + guideOffX) + '%', top: (lampY + guideOffY) + '%' }
+
+// Dark/lit image registration — dark aligns to lit (base). Actual image size 1672x941.
+const IMG_W = 1672
+const IMG_H = 941
+const PROJECTS_IMAGE_REGISTRATION = {
+  dark: { scale: 1, x: 0, y: 0 } // px correction in image coordinates
+}
+const regD = PROJECTS_IMAGE_REGISTRATION.dark
+const darkRegStyle = {
+  transform: `translate(${(regD.x / IMG_W) * 100}%, ${(regD.y / IMG_H) * 100}%) scale(${regD.scale})`
+}
+
+// Single-layer fog dispersion (design px, converted to scene % for scale-invariant drift)
+const FOG_DISPERSION = { x: 45, y: -12, scale: 1.04, duration: 2.0 }
 
 const projects = [
-  {
-    num: '01',
-    title: 'AI 热点情报系统',
-    tags: 'AI × 数据 × 自动化',
-    desc: '从信息采集、筛选、评分到 AI 分析，构建一套自动化热点情报系统。',
-    background: '', duty: '', problem: '', solution: '', result: '', tech: ''
-  },
-  {
-    num: '02',
-    title: 'AI 建联自动分发系统',
-    tags: 'AI Agent × 工作流',
-    desc: '探索如何让 AI 从信息筛选走向任务执行，完成达人筛选、建联与信息分发。',
-    background: '', duty: '', problem: '', solution: '', result: '', tech: ''
-  },
-  {
-    num: '03',
-    title: '个人作品集网站',
-    tags: 'Vue × GSAP × AI Coding',
-    desc: '从视觉设计到交互实现，用 AI Coding 将东方山水视觉概念转化为真实网页。',
-    background: '', duty: '', problem: '', solution: '', result: '', tech: ''
-  },
-  {
-    num: '04',
-    title: '更多项目',
-    tags: '持续探索中',
-    desc: '后续再填入真实内容。',
-    background: '', duty: '', problem: '', solution: '', result: '', tech: ''
+  { num: '01', title: 'AI 情报系统', tags: 'AI / 数据 / 自动化' },
+  { num: '02', title: 'KOL 建联 Agent', tags: 'AI / Agent / 增长' },
+  { num: '03', title: '个人知识库', tags: 'AI / 产品 / 知识管理' }
+]
+
+function setProjRef(el, i) {
+  if (el) projRefs[i].value = el
+}
+
+function toggleScene() {
+  if (sceneState.value === 'transitioning') return
+  if (sceneState.value === 'dark') {
+    sceneState.value = 'transitioning'
+    projectsTimeline.play()
+  } else if (sceneState.value === 'lit') {
+    sceneState.value = 'transitioning'
+    projectsTimeline.reverse()
   }
-]
-
-const detailFields = [
-  { key: 'background', label: '项目背景' },
-  { key: 'duty', label: '我的职责' },
-  { key: 'problem', label: '核心问题' },
-  { key: 'solution', label: '解决方案' },
-  { key: 'result', label: '最终结果' },
-  { key: 'tech', label: '技术 / 工具' }
-]
-
-function lightUp() {
-  if (isLit.value) return
-  isLit.value = true
-  lightTl.play()
 }
 
 onMounted(() => {
-  // Center the content wrapper using GSAP percent transforms (avoids CSS transform conflict)
-  if (contentRef.value) {
-    gsap.set(contentRef.value, { xPercent: -50, yPercent: -50, y: 16 })
+  // Debug registration mode — add ?debug-register to URL to see both at 0.5 opacity
+  const debugRegister = new URLSearchParams(window.location.search).has('debug-register')
+  if (debugRegister) {
+    gsap.set(darkRef.value, { opacity: 0.5 })
+    gsap.set(litRef.value, { opacity: 0.5 })
+    if (fogRef.value) gsap.set(fogRef.value, { opacity: 0 })
+    return
   }
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   if (reduceMotion) {
-    isLit.value = true
-    if (contentRef.value) contentRef.value.style.opacity = '1'
+    sceneState.value = 'lit'
+    gsap.set([darkRef.value], { opacity: 0 })
+    gsap.set([litRef.value], { opacity: 1 })
+    gsap.set([fogRef.value], { opacity: 0 })
+    gsap.set([titleRef.value, subRef.value, ...projRefs.map(r => r.value)], { opacity: 1, y: 0 })
     return
   }
 
-  lightTl = gsap.timeline({ paused: true })
-    // Stage 1: guide fades + lamp brightens
-    .to(guideRef.value, { opacity: 0, y: -6, duration: 0.35, ease: 'power2.in' }, 0)
-    .to(lampGlowRef.value, { opacity: 1, scale: 1.6, duration: 0.55, ease: 'power2.out' }, 0)
-    // Stage 2: pavilion reveals
-    .to(pavilionRef.value, { opacity: 0.65, duration: 0.7, ease: 'power2.inOut' }, 0.5)
-    // Stage 3: dark overlay fades
-    .to(overlayRef.value, { opacity: 0.08, duration: 0.8, ease: 'power2.inOut' }, 0.4)
-    // Stage 4: content appears
-    .to(contentRef.value, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.9, ease: 'power2.out' }, 1.0)
+  projectsTimeline = gsap.timeline({
+    paused: true,
+    onComplete: () => { sceneState.value = 'lit' },
+    onReverseComplete: () => { sceneState.value = 'dark' },
+    onReverseStart: () => {
+      // Immediately disable project interaction when reversing
+      if (contentLayerRef.value) {
+        contentLayerRef.value.style.pointerEvents = 'none'
+      }
+    }
+  })
+    // 0.00s lamp core flash
+    .to(coreRef.value, { opacity: 0.55, scale: 1, duration: 0.3, ease: 'power2.out' }, 0)
+    .to(coreRef.value, { opacity: 0, duration: 0.6, ease: 'power2.inOut' }, 0.5)
+    // 0.10s guide text fades
+    .to(guideRef.value, { opacity: 0, y: -6, duration: 0.35, ease: 'power2.in' }, 0.1)
+    // 0.20s lit fades in, 0.25s dark fades out (crossfade)
+    .to(litRef.value, { opacity: 1, duration: 1.8, ease: 'power2.inOut' }, 0.2)
+    .to(darkRef.value, { opacity: 0, duration: 1.8, ease: 'power2.inOut' }, 0.25)
+    // 0.35s fog disperses (up-right, single layer)
+    .to(fogRef.value, {
+      opacity: 0,
+      xPercent: (FOG_DISPERSION.x / IMG_W) * 100,
+      yPercent: (FOG_DISPERSION.y / IMG_H) * 100,
+      scale: FOG_DISPERSION.scale,
+      duration: FOG_DISPERSION.duration,
+      ease: 'sine.out'
+    }, 0.35)
+    // 1.15s enable content layer (visibility + pointer-events), title appears
+    .set(contentLayerRef.value, { visibility: 'visible', pointerEvents: 'auto' }, 1.15)
+    .to(titleRef.value, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, 1.15)
+    // 1.30s subtitle
+    .to(subRef.value, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, 1.3)
+    // 1.45s project 01
+    .to(projRefs[0].value, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 1.45)
+    // 1.60s project 02
+    .to(projRefs[1].value, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 1.6)
+    // 1.75s project 03
+    .to(projRefs[2].value, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 1.75)
 })
 
 onUnmounted(() => {
-  if (lightTl) lightTl.kill()
+  if (projectsTimeline) projectsTimeline.kill()
 })
 </script>
 
 <style scoped>
 .projects-page {
   position: relative;
+  height: 100dvh;
   min-height: 100vh;
-  height: 100vh;
   overflow: hidden;
 }
 
-.project-bg {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
+/* Scene coordinate box — matches cover-rendered background exactly */
+.scene-box {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, calc(100dvh * 1.7768));
+  aspect-ratio: 1672 / 941;
   pointer-events: none;
+  z-index: 0;
 }
 
-.project-bg img {
+/* Unified background frame — dark + lit share one scale/translate/cover mapping */
+.bg-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Background images — fully stacked, shared coordinate space */
+.bg-img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
-}
-
-/* Dark overlay */
-.dark-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
   pointer-events: none;
-  background: rgba(10, 14, 14, 0.3);
 }
 
-/* Pavilion glow */
-.pavilion-glow {
-  position: fixed;
-  left: 85%;
-  top: 49%;
-  width: 140px;
-  height: 140px;
-  margin: -70px;
+.bg-dark { opacity: 1; }
+.bg-lit { opacity: 0; }
+.bg-fog { opacity: 1; }
+
+/* Lamp core flash — bound to real lamp shade (position via lampStyle) */
+.lamp-core {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(0.8);
+  width: 3%;
+  aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 210, 150, 0.6) 0%, rgba(255, 190, 120, 0.2) 50%, transparent 72%);
+  background: radial-gradient(circle, rgba(255, 232, 190, 0.9) 0%, rgba(255, 210, 150, 0.4) 55%, transparent 100%);
   opacity: 0;
-  z-index: 1;
   pointer-events: none;
+  transition: opacity 0.3s var(--ease-out);
 }
 
-/* Lamp glow */
-.lamp-glow {
-  position: fixed;
-  left: 17%;
-  top: 80%;
-  width: 110px;
-  height: 110px;
-  margin: -55px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 214, 160, 0.85) 0%, rgba(255, 190, 120, 0.3) 45%, transparent 72%);
-  opacity: 0.5;
-  z-index: 2;
-  pointer-events: none;
-  animation: lampBreathe 4.5s ease-in-out infinite;
+.lamp-core.hovered {
+  opacity: 0.3;
 }
 
-@keyframes lampBreathe {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.08); }
-}
-
-/* Guide text — clickable */
+/* Guide text (position via guideStyle, derived from lamp anchor) */
 .guide-text {
-  position: fixed;
-  left: 18%;
-  top: 72%;
-  z-index: 3;
+  position: absolute;
   margin: 0;
   font-family: var(--font-label);
   font-size: 0.7rem;
-  letter-spacing: 0.16em;
-  color: rgba(252, 247, 238, 0.78);
+  letter-spacing: 0.14em;
+  color: rgba(245, 240, 230, 0.8);
   cursor: pointer;
   padding: 0.6rem 0.9rem;
-  text-shadow: 0 1px 8px rgba(10, 14, 14, 0.5);
+  text-shadow: 0 1px 8px rgba(15, 18, 18, 0.5);
+  pointer-events: auto;
+  z-index: 3;
   transition: color var(--dur-fast) var(--ease-out),
               letter-spacing var(--dur-base) var(--ease-out),
               transform var(--dur-fast) var(--ease-out);
 }
 
-.guide-text:hover {
-  color: rgba(255, 250, 242, 0.95);
-  letter-spacing: 0.2em;
+.guide-text:hover,
+.guide-text.hovered {
+  color: rgba(255, 250, 242, 0.98);
+  letter-spacing: 0.18em;
   transform: translateX(3px);
 }
 
-/* Lamp hot zone */
-.lamp-zone {
-  position: fixed;
-  left: 17%;
-  top: 80%;
-  width: 80px;
-  height: 80px;
-  margin: -40px;
-  border-radius: 50%;
+/* Lamp hotspot — transparent rectangle, bound to real lamp (size via hotspotStyle) */
+.lamp-hotspot {
+  position: absolute;
+  transform: translate(-50%, -50%);
   cursor: pointer;
+  pointer-events: auto;
   z-index: 4;
   background: transparent;
 }
 
-/* Content wrapper — hidden until lighting, centered */
-.content-wrapper {
-  position: fixed;
+/* Content layer — centered, fully disabled until lit */
+.content-layer {
+  position: absolute;
   left: 50%;
-  top: 50%;
-  z-index: 2;
-  width: min(560px, 84vw);
-  opacity: 0;
-  filter: blur(4px);
-}
-
-.content-sheet {
-  width: 100%;
-  max-height: 72vh;
-  overflow-y: auto;
-  padding: var(--space-2xl);
-  background: linear-gradient(rgba(246, 238, 224, 0.42), rgba(246, 238, 224, 0.42)),
-    url('@/assets/textures/paper-texture.svg');
-  background-size: auto, 300px;
-  border: 1px solid rgba(168, 157, 140, 0.14);
-  border-radius: var(--radius-lg);
-  backdrop-filter: blur(2px);
-}
-
-.content-sheet::-webkit-scrollbar {
-  width: 4px;
-}
-.content-sheet::-webkit-scrollbar-thumb {
-  background: rgba(139, 132, 120, 0.22);
-  border-radius: 2px;
-}
-
-.content-eyebrow {
-  font-family: var(--font-label);
-  font-size: 0.66rem;
-  letter-spacing: 0.3em;
-  color: var(--bark);
-  margin: 0 0 0.4rem;
+  top: 52%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  width: min(520px, 86vw);
+  text-align: center;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .content-title {
   font-family: var(--font-editorial);
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
   font-weight: 400;
   color: var(--ink-dark);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   margin: 0 0 var(--space-sm);
+  opacity: 0;
+  transform: translateY(16px);
+  text-shadow: 0 1px 14px rgba(252, 247, 238, 0.7);
 }
 
-.content-intro {
+.content-sub {
   font-family: var(--font-body);
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   color: var(--ink);
-  line-height: 1.8;
+  letter-spacing: 0.04em;
   margin: 0 0 var(--space-xl);
+  opacity: 0;
+  transform: translateY(16px);
+  text-shadow: 0 1px 12px rgba(252, 247, 238, 0.7);
 }
 
 .project-list {
   display: flex;
   flex-direction: column;
+  text-align: left;
 }
 
 .project-item {
-  padding: var(--space-md) 0;
-  border-top: 1px solid rgba(139, 132, 120, 0.2);
-  cursor: pointer;
-  transition: opacity 0.4s var(--ease-out);
-}
-
-.project-item:hover {
-  opacity: 0.7;
-}
-
-.project-head {
   display: flex;
   align-items: baseline;
   gap: var(--space-md);
+  padding: var(--space-md) 0;
+  border-top: 1px solid rgba(139, 132, 120, 0.2);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.project-item:hover {
+  opacity: 0.72;
 }
 
 .project-num {
@@ -367,11 +374,7 @@ onUnmounted(() => {
   color: var(--ink-dark);
   letter-spacing: 0.03em;
   margin: 0;
-  transition: transform 0.4s var(--ease-out);
-}
-
-.project-item:hover .project-title {
-  transform: translateY(-2px);
+  text-shadow: 0 1px 10px rgba(252, 247, 238, 0.6);
 }
 
 .project-tags {
@@ -383,119 +386,21 @@ onUnmounted(() => {
   margin: 0.15rem 0 0;
 }
 
-.project-desc {
-  font-family: var(--font-body);
-  font-size: 0.86rem;
-  color: var(--ink);
-  line-height: 1.7;
-  margin: 0.5rem 0 0;
-}
-
-/* Detail panel */
-.detail-panel {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 5;
-  width: min(520px, 86vw);
-  max-height: 78vh;
-  overflow-y: auto;
-  padding: var(--space-2xl);
-  background: linear-gradient(rgba(246, 238, 224, 0.82), rgba(246, 238, 224, 0.82)),
-    url('@/assets/textures/paper-texture.svg');
-  background-size: auto, 300px;
-  border: 1px solid rgba(168, 157, 140, 0.15);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 2px 30px rgba(58, 51, 46, 0.08);
-}
-
-.detail-close {
-  position: absolute;
-  top: var(--space-md);
-  right: var(--space-md);
-  background: none;
-  border: none;
-  font-size: 1.3rem;
-  color: var(--ink-light);
-  cursor: pointer;
-  padding: 0.2rem 0.5rem;
-  transition: color var(--dur-fast) var(--ease-out);
-}
-
-.detail-close:hover {
-  color: var(--ink-dark);
-}
-
-.detail-eyebrow {
-  font-family: var(--font-label);
-  font-size: 0.66rem;
-  letter-spacing: 0.24em;
-  color: var(--bark);
-  margin: 0 0 0.4rem;
-}
-
-.detail-title {
-  font-family: var(--font-editorial);
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: var(--ink-dark);
-  letter-spacing: 0.04em;
-  margin: 0 0 0.3rem;
-}
-
-.detail-tags {
-  font-family: var(--font-label);
-  font-size: 0.7rem;
-  color: var(--ink-green);
-  letter-spacing: 0.1em;
-  margin: 0 0 var(--space-lg);
-}
-
-.detail-fields {
-  margin: 0;
-}
-
-.detail-field {
-  padding: var(--space-sm) 0;
-  border-top: 1px solid rgba(139, 132, 120, 0.14);
-}
-
-.detail-label {
-  font-family: var(--font-label);
-  font-size: 0.66rem;
-  color: var(--bark);
-  letter-spacing: 0.12em;
-  margin-bottom: 0.3rem;
-}
-
-.detail-value {
-  font-family: var(--font-body);
-  font-size: 0.88rem;
-  color: var(--ink);
-  line-height: 1.8;
-  margin: 0;
-}
-
-.detail-enter-active,
-.detail-leave-active {
-  transition: opacity 0.5s var(--ease-out), transform 0.5s var(--ease-out);
-}
-.detail-enter-from,
-.detail-leave-to {
-  opacity: 0;
-  transform: translate(-50%, -50%) scale(0.96);
-}
-
 @media (max-width: 768px) {
-  .content-wrapper {
-    left: 50%;
-    top: 52%;
-    width: 88vw;
+  .guide-text {
+    font-size: 0.6rem;
   }
-  .detail-panel {
-    left: 50%;
+  .content-layer {
     width: 88vw;
+    top: 50%;
+  }
+
+  .project-item {
+    padding: var(--space-sm) 0;
+  }
+
+  .project-tags {
+    line-height: 1.45;
   }
 }
 </style>

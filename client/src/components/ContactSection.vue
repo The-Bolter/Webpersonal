@@ -85,7 +85,7 @@ async function handleSubmit() {
 
 .contact-layout {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--space-3xl);
   align-items: start;
 }
@@ -163,5 +163,6 @@ async function handleSubmit() {
 @media (max-width: 768px) {
   .contact-layout { grid-template-columns: 1fr; gap: var(--space-2xl); }
   .contact-form-wrapper { max-width: 100%; }
+  .detail-item a { overflow-wrap: anywhere; }
 }
 </style>

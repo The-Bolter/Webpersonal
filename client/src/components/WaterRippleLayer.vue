@@ -52,7 +52,7 @@ watch(
 
 <style scoped>
 .ripple-layer {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;

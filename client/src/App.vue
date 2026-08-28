@@ -1,16 +1,18 @@
 <template>
-  <div class="app-wrapper">
-    <BackgroundCanvas />
+  <div class="app-viewport">
     <LoadingScreen />
-    <AppNav />
-    <main>
-      <router-view v-slot="{ Component }">
-        <transition name="page" mode="out-in">
-          <component :is="Component" />
-        </transition>
-      </router-view>
-    </main>
-    <AppFooter v-if="$route.path !== '/'" />
+    <div class="desktop-stage">
+      <BackgroundCanvas />
+      <AppNav />
+      <main>
+        <router-view v-slot="{ Component }">
+          <transition name="page" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
+      </main>
+      <AppFooter v-if="$route.path !== '/'" />
+    </div>
     <ScrollToTop />
   </div>
 </template>
@@ -47,8 +49,15 @@ onMounted(() => {
   opacity: 0;
 }
 
-.app-wrapper {
+.app-viewport {
   position: relative;
+  min-height: 100vh;
+}
+
+.desktop-stage {
+  position: relative;
+  width: 100%;
+  min-width: var(--desktop-stage-min);
   min-height: 100vh;
 }
 

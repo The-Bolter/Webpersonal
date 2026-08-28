@@ -1,111 +1,183 @@
 <template>
   <div class="journey-page">
-    <!-- Fixed landscape background -->
-    <div class="journey-bg" aria-hidden="true">
-      <img :src="bgSrc" alt="" />
-    </div>
+    <!-- Scene coordinate box: background and nodes use one cover mapping -->
+    <div class="journey-scene">
+      <div class="journey-bg" aria-hidden="true">
+        <img :src="bgSrc" alt="" />
+      </div>
 
-    <!-- Subtle stream motion overlay -->
-    <div class="stream-motion" aria-hidden="true">
-      <div class="stream-band band-1"></div>
-      <div class="stream-band band-2"></div>
-    </div>
+      <!-- Subtle stream motion overlay -->
+      <div class="stream-motion" aria-hidden="true">
+        <div class="stream-band band-1"></div>
+        <div class="stream-band band-2"></div>
+      </div>
 
-    <!-- First-visit hint -->
-    <transition name="hint-fade">
-      <p v-if="showHint" class="journey-hint">沿溪而行，探索我的经历</p>
-    </transition>
+      <!-- First-visit hint -->
+      <transition name="hint-fade">
+        <p v-if="showHint" class="journey-hint">沿溪而行，探索我的经历</p>
+      </transition>
 
-    <!-- Fixed experience nodes -->
-    <div class="node-field">
-      <div
-        v-for="(n, i) in nodes"
-        :key="n.year + n.title"
-        class="node"
-        :class="{ lit: litIndex === i, dimmed: hoverIndex !== -1 && hoverIndex !== i, pulse: pulseIndex === i }"
-        :style="{ left: n.x, top: n.y }"
-        @click="toggleNode(i)"
-        @mouseenter="hoverIndex = i"
-        @mouseleave="hoverIndex = -1"
-      >
-        <span class="node-halo"></span>
-        <span class="node-dot"></span>
-        <div class="node-label">
-          <p class="node-year">{{ n.year }}</p>
-          <transition name="title-fade">
-            <p v-if="hoverIndex === i || litIndex === i" class="node-title">{{ n.title }}</p>
-          </transition>
+      <!-- Experience nodes (Scene Layer) -->
+      <div class="node-field">
+        <div
+          v-for="(n, i) in nodes"
+          :key="n.id"
+          class="node"
+          :class="{
+            now: n.id === 'now',
+            lit: litIndex === i,
+            dimmed: hoverIndex !== -1 && hoverIndex !== i,
+            active: openIndex === i
+          }"
+          :style="{ left: n.x, top: n.y }"
+          @click="toggleNode(i)"
+          @mouseenter="hoverIndex = i"
+          @mouseleave="hoverIndex = -1"
+        >
+          <span class="node-point">
+            <span class="node-halo"></span>
+            <span class="node-dot"></span>
+          </span>
+          <div class="node-label">
+            <p class="node-year">{{ n.year }}</p>
+            <transition name="title-fade">
+              <p v-if="hoverIndex === i || litIndex === i || openIndex === i" class="node-title">{{ n.title }}</p>
+            </transition>
+          </div>
+          <span class="node-tick" aria-hidden="true"></span>
         </div>
       </div>
     </div>
 
-    <!-- Hover summary card -->
-    <transition name="summary">
-      <div
-        v-if="hoverIndex !== -1 && openIndex === -1"
-        class="summary-card"
-        :style="summaryPos"
-      >
-        <p class="summary-year">{{ nodes[hoverIndex].year }}</p>
-        <h4 class="summary-title">{{ nodes[hoverIndex].title }}</h4>
-        <p class="summary-desc">{{ nodes[hoverIndex].desc }}</p>
-      </div>
-    </transition>
-
-    <!-- Click detail card (right side) -->
-    <transition name="panel">
-      <div v-if="openIndex !== -1" class="detail-panel">
-        <p class="panel-year">{{ nodes[openIndex].year }}</p>
-        <h3 class="panel-title">{{ nodes[openIndex].title }}</h3>
-        <p class="panel-intro">{{ nodes[openIndex].desc }}</p>
-        <div class="panel-body">
-          <p v-for="d in nodes[openIndex].details" :key="d" class="panel-detail">{{ d }}</p>
+    <!-- Reading pane (UI Layer) — fixed right-side 题记区 -->
+    <transition name="pane">
+      <div v-if="openIndex !== -1" ref="paneRef" class="journey-reading-pane">
+        <div class="pane-veil" aria-hidden="true"></div>
+        <div class="pane-content">
+          <p class="pane-year">{{ nodes[openIndex].year }}</p>
+          <h3 class="pane-title">{{ nodes[openIndex].title }}</h3>
+          <p class="pane-intro">{{ nodes[openIndex].desc }}</p>
+          <div class="pane-rule" aria-hidden="true"></div>
+          <div class="pane-sections">
+            <div v-for="s in activeSections" :key="s.num" class="pane-section">
+              <p class="pane-section-head">
+                <span class="pane-section-num">{{ s.num }}</span>
+                <span class="pane-section-label">{{ s.label }}</span>
+              </p>
+              <p class="pane-section-text">{{ s.text }}</p>
+            </div>
+          </div>
+          <button class="pane-collapse" @click="closeDetail">收起</button>
         </div>
-        <button class="panel-close" @click="openIndex = -1" aria-label="关闭">×</button>
       </div>
     </transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import gsap from 'gsap'
-import bgSrc from '../assets/pages/journey-bg.png'
+import bgSrc from '../assets/pages/journey-bg-v2.png'
 
 const openIndex = ref(-1)
 const hoverIndex = ref(-1)
 const litIndex = ref(-1)
-const pulseIndex = ref(-1)
 const showHint = ref(false)
 let guideTl = null
+let detailTl = null
 
-const nodes = [
-  { year: '2024', title: '校园经历', desc: '校园项目与能力积累', x: '22%', y: '45%', details: ['占位内容：校园项目经历', '占位内容：能力积累'] },
-  { year: '2025', title: '海外 SEO / 内容增长', desc: '海外内容增长与数据分析', x: '18%', y: '53%', details: ['占位内容：海外内容增长', '占位内容：数据分析'] },
-  { year: '2025', title: '达人商务 / 内容运营', desc: '内容合作与项目执行', x: '29%', y: '59%', details: ['占位内容：内容合作', '占位内容：项目执行'] },
-  { year: '2026', title: '产品运营', desc: '产品分析与用户增长', x: '25%', y: '75%', details: ['占位内容：产品分析', '占位内容：用户增长'] },
-  { year: '2026', title: 'AI × Product', desc: 'AI 产品探索与应用实践', x: '40%', y: '81%', details: ['占位内容：AI 产品探索', '占位内容：应用实践'] },
-  { year: 'NOW', title: 'AI + Coding', desc: '独立项目与技术实践', x: '50%', y: '90%', details: ['占位内容：独立项目', '占位内容：技术实践'] }
+const paneRef = ref(null)
+
+// Journey nodes — centralized config for manual tuning (design % within scene coordinate space)
+// Coordinates are manually calibrated — DO NOT modify x/y.
+const JOURNEY_NODES = [
+  { id: 'campus', year: '2024', title: '校园经历', desc: '校园项目与能力积累', x: '20%', y: '45%', details: ['占位内容：校园项目经历', '占位内容：能力积累'] },
+  { id: 'seo', year: '2025', title: '海外 SEO / 内容增长', desc: '海外内容增长与数据分析', x: '18%', y: '54%', details: ['占位内容：海外内容增长', '占位内容：数据分析'] },
+  { id: 'kol', year: '2025', title: '达人商务 / 内容运营', desc: '内容合作与项目执行', x: '32%', y: '59%', details: ['占位内容：内容合作', '占位内容：项目执行'] },
+  { id: 'product', year: '2026', title: '产品运营', desc: '产品分析与用户增长', x: '22%', y: '72%', details: ['占位内容：产品分析', '占位内容：用户增长'] },
+  { id: 'aixp', year: '2026', title: 'AI × Product', desc: 'AI 产品探索与应用实践', x: '40%', y: '77%', details: ['占位内容：AI 产品探索', '占位内容：应用实践'] },
+  { id: 'now', year: 'NOW', title: 'AI + Coding', desc: '独立项目与技术实践', x: '55%', y: '87%', details: ['占位内容：独立项目', '占位内容：技术实践'] }
 ]
 
-const summaryPos = computed(() => {
-  const n = hoverIndex.value >= 0 ? nodes[hoverIndex.value] : null
-  if (!n) return {}
-  const x = parseFloat(n.x)
-  // card to the right of the node, clamped to avoid overflow
-  const left = Math.min(x + 9, 62)
-  return { left: left + '%', top: n.y }
+const nodes = JOURNEY_NODES
+
+const PANE_SECTIONS = [
+  { num: '01', label: '核心工作' },
+  { num: '02', label: '项目结果' },
+  { num: '03', label: '能力沉淀' }
+]
+
+const activeSections = computed(() => {
+  if (openIndex.value === -1) return []
+  const details = nodes[openIndex.value].details || []
+  const texts = details.concat(['占位内容：待补充', '占位内容：待补充']).slice(0, 3)
+  return PANE_SECTIONS.map((s, i) => ({ ...s, text: texts[i] }))
 })
+
+function animateContentOut(done) {
+  const content = paneRef.value ? paneRef.value.querySelector('.pane-content') : null
+  if (!content) {
+    done && done()
+    return
+  }
+  if (detailTl) detailTl.kill()
+  detailTl = gsap.timeline({ onComplete: done })
+  detailTl.to(content, { opacity: 0, y: -5, duration: 0.25, ease: 'power2.in' })
+}
+
+function animateContentIn() {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const pane = paneRef.value
+  if (!pane) return
+  const content = pane.querySelector('.pane-content')
+  const year = pane.querySelector('.pane-year')
+  const title = pane.querySelector('.pane-title')
+  const rule = pane.querySelector('.pane-rule')
+  const intro = pane.querySelector('.pane-intro')
+  const sections = pane.querySelectorAll('.pane-section')
+
+  if (detailTl) detailTl.kill()
+
+  if (reduceMotion) {
+    gsap.set([content, year, title, intro, ...sections], { opacity: 1, y: 0 })
+    gsap.set(rule, { scaleX: 1 })
+    return
+  }
+
+  gsap.set(content, { opacity: 1, y: 0 })
+  gsap.set([year, title, intro], { opacity: 0, y: 5 })
+  gsap.set(rule, { scaleX: 0, transformOrigin: 'left center' })
+  gsap.set(sections, { opacity: 0, y: 8 })
+
+  detailTl = gsap.timeline()
+    .to(year, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }, 0.10)
+    .to(title, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }, 0.20)
+    .to(rule, { scaleX: 1, duration: 0.35, ease: 'sine.out' }, 0.30)
+    .to(intro, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }, 0.40)
+    .to(sections, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.12 }, 0.50)
+}
+
+function openNode(i) {
+  openIndex.value = i
+  nextTick(animateContentIn)
+}
 
 function toggleNode(i) {
   if (openIndex.value === i) {
-    openIndex.value = -1
+    closeDetail()
     return
   }
-  openIndex.value = i
-  // click pulse on the node
-  pulseIndex.value = i
-  setTimeout(() => { pulseIndex.value = -1 }, 550)
+  if (openIndex.value !== -1) {
+    animateContentOut(() => openNode(i))
+  } else {
+    openNode(i)
+  }
+}
+
+function closeDetail() {
+  if (openIndex.value === -1) return
+  if (detailTl) detailTl.kill()
+  openIndex.value = -1
 }
 
 onMounted(() => {
@@ -131,19 +203,32 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (guideTl) guideTl.kill()
+  if (detailTl) detailTl.kill()
 })
 </script>
 
 <style scoped>
 .journey-page {
   position: relative;
+  height: 100dvh;
   min-height: 100vh;
-  height: 100vh;
   overflow: hidden;
 }
 
+.journey-scene {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, calc(100dvh * 1.7768));
+  aspect-ratio: 16 / 9;
+  transform: translate(-50%, -50%);
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
 .journey-bg {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
@@ -158,7 +243,7 @@ onUnmounted(() => {
 
 /* Stream motion */
 .stream-motion {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
@@ -195,7 +280,7 @@ onUnmounted(() => {
 
 /* Hint */
 .journey-hint {
-  position: fixed;
+  position: absolute;
   top: calc(var(--nav-height) + var(--space-lg));
   left: 50%;
   transform: translateX(-50%);
@@ -219,13 +304,13 @@ onUnmounted(() => {
 
 /* Node field */
 .node-field {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
 }
 
-/* Experience nodes — larger, more visible */
+/* Experience nodes */
 .node {
   position: absolute;
   transform: translate(-50%, -50%);
@@ -237,78 +322,140 @@ onUnmounted(() => {
 }
 
 .node.dimmed {
-  opacity: 0.35;
+  opacity: 0.78;
 }
 
+.node-point {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Subtle halo — no hard boundary */
 .node-halo {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 84px;
-  height: 84px;
-  margin: -42px 0 0 -42px;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(190, 138, 118, 0.5) 0%, rgba(190, 138, 118, 0.16) 50%, transparent 72%);
-  opacity: 0.2;
+  background: radial-gradient(circle, rgba(156, 90, 79, 0.32) 0%, rgba(156, 90, 79, 0.10) 55%, transparent 100%);
+  opacity: 0.16;
   pointer-events: none;
-  animation: breathe 5.5s ease-in-out infinite;
+  transition: opacity 0.5s var(--ease-out);
 }
 
-.node:nth-child(2) .node-halo { animation-duration: 6.5s; }
-.node:nth-child(3) .node-halo { animation-duration: 4.5s; }
-.node:nth-child(4) .node-halo { animation-duration: 7s; }
-.node:nth-child(5) .node-halo { animation-duration: 5s; }
-.node:nth-child(6) .node-halo { animation-duration: 6s; }
-
-@keyframes breathe {
-  0%, 100% { transform: scale(1); opacity: 0.2; }
-  50% { transform: scale(1.08); opacity: 0.32; }
-}
-
+/* Normal node dot — 10px low-saturation dark cinnabar */
 .node-dot {
   position: relative;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #9c5a4f;
+  transition: transform 0.45s var(--ease-out), opacity 0.45s var(--ease-out);
+}
+
+.node:hover .node-dot {
+  transform: scale(1.18);
+}
+
+.node:hover .node-halo {
+  animation: halo-press 0.6s var(--ease-out);
+}
+
+@keyframes halo-press {
+  0% { transform: scale(1); opacity: 0.16; }
+  55% { transform: scale(1.25); opacity: 0.32; }
+  100% { transform: scale(1); opacity: 0.16; }
+}
+
+/* Active node */
+.node.active .node-dot {
+  transform: scale(1.2);
+}
+
+.node.active .node-halo {
+  transform: scale(1.23);
+  opacity: 0.42;
+}
+
+.node.active .node-year {
+  font-weight: 600;
+}
+
+.node.lit .node-dot {
+  transform: scale(1.15);
+}
+
+/* Short ink tick — active node (and NOW always) */
+.node-tick {
+  margin-left: 12px;
+  align-self: center;
+  width: 40px;
+  height: 1px;
+  background: rgba(90, 80, 70, 0.5);
+  transform: scaleX(0);
+  transform-origin: left center;
+  opacity: 0;
+  transition: transform 0.5s var(--ease-out), opacity 0.5s var(--ease-out);
+  flex-shrink: 0;
+}
+
+.node.active .node-tick,
+.node.now .node-tick {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+/* ---- NOW node — the journey's endpoint ---- */
+.node.now .node-point {
   width: 14px;
   height: 14px;
-  border-radius: 50%;
-  background: #b0766b;
-  opacity: 0.8;
-  box-shadow: 0 0 10px rgba(176, 118, 107, 0.35);
-  transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
 }
 
-.node:hover .node-dot,
-.node.lit .node-dot {
-  opacity: 1;
-  transform: scale(1.3);
+.node.now .node-dot {
+  width: 13px;
+  height: 13px;
+  background: #7f453c;
 }
 
-.node:hover .node-halo,
-.node.lit .node-halo {
-  opacity: 0.5;
+.node.now .node-halo {
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
+  background: radial-gradient(circle, rgba(140, 76, 64, 0.4) 0%, rgba(140, 76, 64, 0.14) 55%, transparent 100%);
+  opacity: 0.28;
+  animation: now-pulse 4s ease-in-out infinite;
 }
 
-/* Click pulse */
-.node.pulse .node-halo {
-  animation: haloFlash 0.55s ease-out;
+@keyframes now-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.28; }
+  50% { transform: scale(1.14); opacity: 0.46; }
 }
 
-@keyframes haloFlash {
-  0% { transform: scale(1); opacity: 0.55; }
-  100% { transform: scale(1.7); opacity: 0; }
+.node.now .node-year {
+  color: var(--ink-dark);
+  font-weight: 600;
+  letter-spacing: 0.26em;
 }
 
 .node-label {
-  margin-left: var(--space-lg);
+  margin-left: var(--space-md);
   display: flex;
   flex-direction: column;
 }
 
 .node-year {
   font-family: var(--font-label);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 500;
-  color: var(--ink);
-  letter-spacing: 0.16em;
+  color: var(--ink-dark);
+  letter-spacing: 0.22em;
   margin: 0;
 }
 
@@ -332,158 +479,149 @@ onUnmounted(() => {
   transform: translateY(8px);
 }
 
-/* Hover summary card */
-.summary-card {
-  position: fixed;
-  transform: translateY(-50%);
-  z-index: 3;
-  width: min(260px, 70vw);
-  padding: var(--space-md) var(--space-lg);
-  background: linear-gradient(rgba(246, 238, 224, 0.8), rgba(246, 238, 224, 0.8)),
-    url('@/assets/textures/paper-texture.svg');
-  background-size: auto, 300px;
-  box-shadow: 0 2px 18px rgba(58, 51, 46, 0.08);
-  pointer-events: none;
+/* ---- Reading pane (UI Layer) — mid-right 题记区 ---- */
+.journey-reading-pane {
+  position: absolute;
+  left: 45%;
+  top: 14%;
+  width: clamp(360px, 38vw, 640px);
+  max-width: 640px;
+  height: auto;
+  z-index: 6;
+  pointer-events: auto;
 }
 
-.summary-year {
-  font-family: var(--font-label);
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: var(--ink);
-  letter-spacing: 0.18em;
-  margin: 0 0 0.3rem;
-}
-
-.summary-title {
-  font-family: var(--font-editorial);
-  font-size: 1.05rem;
-  font-weight: 500;
-  color: var(--ink-dark);
-  letter-spacing: 0.04em;
-  margin: 0 0 0.4rem;
-}
-
-.summary-desc {
-  font-family: var(--font-body);
-  font-size: 0.84rem;
-  color: var(--ink-light);
-  line-height: 1.6;
-  margin: 0;
-}
-
-.summary-enter-active,
-.summary-leave-active {
-  transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
-}
-.summary-enter-from,
-.summary-leave-to {
-  opacity: 0;
-  transform: translateY(-50%) translateX(-8px);
-}
-
-/* Click detail card — right side */
-.detail-panel {
-  position: fixed;
-  right: 20%;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 5;
-  width: min(600px, 80vw);
-  max-height: 78vh;
-  overflow-y: auto;
-  padding: var(--space-2xl);
-  background: linear-gradient(rgba(246, 238, 224, 0.78), rgba(246, 238, 224, 0.78)),
-    url('@/assets/textures/paper-texture.svg');
-  background-size: auto, 300px;
-  box-shadow: 0 2px 28px rgba(58, 51, 46, 0.09);
-}
-
-.detail-panel::-webkit-scrollbar {
+.journey-reading-pane::-webkit-scrollbar {
   width: 4px;
 }
-.detail-panel::-webkit-scrollbar-thumb {
+.journey-reading-pane::-webkit-scrollbar-thumb {
   background: rgba(139, 132, 120, 0.22);
   border-radius: 2px;
 }
 
-.panel-year {
+/* Borderless fog veil — readability only, no card outline */
+.pane-veil {
+  position: absolute;
+  inset: -10% -6%;
+  background: radial-gradient(ellipse at center, rgba(252, 247, 238, 0.5) 0%, rgba(252, 247, 238, 0.22) 55%, transparent 82%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.pane-content {
+  position: relative;
+  padding: var(--space-xl) var(--space-lg);
+}
+
+.pane-year {
   font-family: var(--font-label);
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 500;
-  color: var(--ink);
+  color: var(--bark);
   letter-spacing: 0.18em;
   margin: 0 0 0.4rem;
 }
 
-.panel-title {
+.pane-title {
   font-family: var(--font-editorial);
-  font-size: 1.5rem;
+  font-size: clamp(1.4rem, 2vw, 1.7rem);
   font-weight: 500;
   color: var(--ink-dark);
   letter-spacing: 0.04em;
   margin: 0 0 0.5rem;
+  line-height: 1.3;
 }
 
-.panel-intro {
+.pane-intro {
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: var(--ink-light);
+  margin: 0 0 var(--space-md);
+}
+
+/* Thin ink divider between intro and sections */
+.pane-rule {
+  width: 100%;
+  height: 1px;
+  background: rgba(139, 132, 120, 0.28);
   margin: 0 0 var(--space-lg);
+  transform: scaleX(0);
 }
 
-.panel-body {
-  border-top: 1px solid rgba(139, 132, 120, 0.16);
-  padding-top: var(--space-md);
+.pane-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
 }
 
-.panel-detail {
+.pane-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin: 0 0 0.2rem;
+}
+
+.pane-section-num {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  font-weight: 500;
+  color: var(--bark);
+  letter-spacing: 0.1em;
+}
+
+.pane-section-label {
+  font-family: var(--font-editorial);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ink-dark);
+  letter-spacing: 0.05em;
+}
+
+.pane-section-text {
   font-family: var(--font-body);
-  font-size: 0.92rem;
-  font-weight: 400;
+  font-size: 0.88rem;
   color: var(--ink);
-  line-height: 1.8;
-  margin: 0 0 0.5rem;
+  line-height: 1.75;
+  margin: 0;
+  padding-left: 1.9rem;
 }
 
-.panel-close {
-  position: absolute;
-  top: var(--space-md);
-  right: var(--space-md);
+.pane-collapse {
+  display: inline-block;
+  margin-top: var(--space-lg);
   background: none;
   border: none;
-  font-size: 1.2rem;
-  color: var(--ink-light);
   cursor: pointer;
-  padding: 0.2rem 0.5rem;
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  color: var(--ink-light);
+  padding: 0.3rem 0;
   transition: color var(--dur-fast) var(--ease-out);
 }
 
-.panel-close:hover {
+.pane-collapse:hover {
   color: var(--ink-dark);
 }
 
-.panel-enter-active,
-.panel-leave-active {
-  transition: opacity 0.5s var(--ease-out), transform 0.5s var(--ease-out);
+/* Pane fade transition */
+.pane-enter-active,
+.pane-leave-active {
+  transition: opacity 0.5s var(--ease-out);
 }
-.panel-enter-from,
-.panel-leave-to {
+.pane-enter-from,
+.pane-leave-to {
   opacity: 0;
-  transform: translateY(-50%) translateX(24px);
 }
 
 @media (max-width: 768px) {
-  .detail-panel {
-    right: 4%;
-    width: 80vw;
-    padding: var(--space-xl);
+  .journey-scene {
+    width: max(100%, calc(100dvh * 1.35));
+    aspect-ratio: 1.35;
   }
-  .summary-card {
-    width: 60vw;
-  }
+
   .node-label {
-    margin-left: var(--space-md);
+    margin-left: var(--space-sm);
   }
   .node-year {
     font-size: 0.7rem;
@@ -494,10 +632,13 @@ onUnmounted(() => {
     max-width: 120px;
     line-height: 1.4;
   }
-  .node-halo {
-    width: 60px;
-    height: 60px;
-    margin: -30px 0 0 -30px;
+
+  .journey-reading-pane {
+    left: 50%;
+    top: 30%;
+    transform: translateX(-50%);
+    width: min(76vw, 420px);
+    height: auto;
   }
 }
 </style>

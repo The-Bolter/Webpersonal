@@ -45,6 +45,7 @@
   /* Layout */
   --max-width: 1100px;
   --nav-height: 64px;
+  --desktop-stage-min: 1200px;
 
   /* Radius */
   --radius-sm: 6px;
@@ -71,9 +72,16 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
 html {
   font-size: 16px;
   scroll-behavior: auto;
+  overflow-x: auto;
 }
 
 body {
@@ -81,7 +89,6 @@ body {
   background-color: var(--paper);
   color: var(--ink);
   line-height: 1.8;
-  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
@@ -281,11 +288,31 @@ ul { list-style: none; }
   50% { opacity: 1; }
 }
 
+/* Single-screen pages — lock document vertical scroll while active */
+html.studio-page-active,
+body.studio-page-active,
+html.about-page-active,
+body.about-page-active,
+html.contact-page-active,
+body.contact-page-active {
+  overflow-y: hidden;
+}
+
 /* Scrollbar — barely visible */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--bark-light); border-radius: 2px; }
 
+@media (max-width: 1024px) {
+  :root {
+    --space-section: 9rem;
+  }
+}
+
 @media (max-width: 768px) {
+  :root {
+    --space-section: 7rem;
+  }
+
   .container { padding: 0 var(--space-lg); }
 }

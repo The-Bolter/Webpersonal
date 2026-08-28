@@ -3,10 +3,11 @@
     <div class="container">
       <!-- Section header — placed at top-left, editorial style -->
       <div class="about-header ink-reveal">
-        <p class="editorial-label">On Philosophy</p>
+        <p class="editorial-label">关于我</p>
         <h2 class="editorial-title">
-          Rooted in<br><em>Contemplation</em>
+          关于我<br><em>关注方向与成长</em>
         </h2>
+        <p class="about-lead">关注 AI 产品、智能工作流与增长实践，持续探索如何用产品思维解决问题，用创造力把想法真正落地。</p>
       </div>
 
       <!-- Philosophy cards — sparse, only 3 items, wide spacing -->
@@ -29,9 +30,9 @@
 
       <!-- Disciplines — comma separated, editorial style -->
       <div class="about-disciplines ink-reveal ink-reveal-delay-3">
-        <p class="disciplines-label">Disciplines</p>
+        <p class="disciplines-label">能力与实践</p>
         <p class="disciplines-list">
-          {{ store.profile.skills.join(' &middot; ') }}
+          {{ store.profile.skills.join(' · ') }}
         </p>
       </div>
     </div>
@@ -50,7 +51,14 @@ const store = useAppStore()
 
 .about-header {
   margin-bottom: var(--space-3xl);
-  max-width: 500px;
+  max-width: 520px;
+}
+
+.about-lead {
+  margin-top: var(--space-md);
+  font-size: 1rem;
+  line-height: 1.9;
+  color: var(--ink-light);
 }
 
 /* Philosophy cards — generous spacing */

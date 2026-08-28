@@ -10,7 +10,7 @@ import conceptSrc from '../assets/index/concept/index-v1-concept.png'
 
 <style scoped>
 .concept-layer {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
