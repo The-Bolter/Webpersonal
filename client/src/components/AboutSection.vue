@@ -4,9 +4,7 @@
       <!-- Section header — placed at top-left, editorial style -->
       <div class="about-header ink-reveal">
         <p class="editorial-label">关于我</p>
-        <h2 class="editorial-title">
-          关于我<br><em>关注方向与成长</em>
-        </h2>
+        <h2 class="editorial-title about-title">关注方向与成长</h2>
         <p class="about-lead">关注 AI 产品、智能工作流与增长实践，持续探索如何用产品思维解决问题，用创造力把想法真正落地。</p>
       </div>
 
@@ -52,6 +50,22 @@ const store = useAppStore()
 .about-header {
   margin-bottom: var(--space-3xl);
   max-width: 520px;
+}
+
+.about-header .editorial-label {
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  color: var(--ink-light);
+  margin-bottom: var(--space-md);
+}
+
+.about-title {
+  font-family: 'Songti SC', 'SimSun', 'Noto Serif SC', 'Source Han Serif SC', serif;
+  font-size: clamp(38px, 3vw, 58px);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.05em;
+  color: var(--ink-dark);
 }
 
 .about-lead {

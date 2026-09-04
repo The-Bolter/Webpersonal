@@ -9,14 +9,18 @@
         <span class="row-label">邮箱</span>
         <span class="row-value">{{ store.profile.social.email }}</span>
       </a>
+      <div class="contact-row">
+        <span class="row-label">微信</span>
+        <span class="row-value">{{ store.profile.social.wechat }}</span>
+      </div>
+      <a :href="`tel:${store.profile.social.phone.replace(/\s/g, '')}`" class="contact-row">
+        <span class="row-label">电话</span>
+        <span class="row-value">{{ store.profile.social.phone }}</span>
+      </a>
       <a :href="store.profile.social.github" target="_blank" rel="noopener" class="contact-row">
         <span class="row-label">GitHub</span>
-        <span class="row-value">github.com</span>
+        <span class="row-value">View repositories ↗</span>
       </a>
-      <router-link to="/contact" class="contact-row">
-        <span class="row-label">简历</span>
-        <span class="row-value">查看简历</span>
-      </router-link>
     </div>
     <router-link to="/contact" class="sheet-more">
       <span>联系我</span>

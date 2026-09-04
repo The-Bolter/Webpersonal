@@ -5,7 +5,8 @@
       <ConceptArtLayer />
       <WaterMotionLayer />
       <WaterRippleLayer />
-      <PlumBranchLayer />
+      <PlumBranchLayer @guide-done="onGuideDone" />
+      <PetalCanvas ref="petalRef" />
 
       <!-- Soft fog behind content (no visible boundary) -->
       <div class="content-haze" aria-hidden="true"></div>
@@ -18,6 +19,16 @@
               <component :is="sheets[activeIndex]" :key="activeIndex" @next="goNext" />
             </transition>
           </div>
+
+          <nav v-if="activeIndex > 0" class="sheet-nav" aria-label="内容浏览">
+            <button class="sheet-nav-link" @click="goBack" aria-label="返回">← 返回</button>
+            <button
+              v-if="activeIndex < totalStates - 1"
+              class="sheet-nav-link"
+              @click="goNext"
+              aria-label="继续了解"
+            >继续了解 →</button>
+          </nav>
         </div>
       </div>
     </div>
@@ -29,6 +40,7 @@ import { ref, onMounted } from 'vue'
 import gsap from 'gsap'
 import ConceptArtLayer from '../components/ConceptArtLayer.vue'
 import PlumBranchLayer from '../components/PlumBranchLayer.vue'
+import PetalCanvas from '../components/PetalCanvas.vue'
 import WaterMotionLayer from '../components/WaterMotionLayer.vue'
 import WaterRippleLayer from '../components/WaterRippleLayer.vue'
 import IndexHeroContent from '../components/index/IndexHeroContent.vue'
@@ -43,6 +55,7 @@ import { useAppStore } from '../store'
 const store = useAppStore()
 const activeIndex = ref(0)
 const sheetRef = ref(null)
+const petalRef = ref(null)
 
 const sheets = [
   IndexHeroContent,
@@ -57,7 +70,15 @@ const sheets = [
 const totalStates = sheets.length
 
 function goNext() {
-  activeIndex.value = (activeIndex.value + 1) % totalStates
+  activeIndex.value = Math.min(activeIndex.value + 1, totalStates - 1)
+}
+
+function goBack() {
+  activeIndex.value = Math.max(activeIndex.value - 1, 0)
+}
+
+function onGuideDone(detail) {
+  petalRef.value?.start(detail || {})
 }
 
 onMounted(() => {
@@ -145,6 +166,33 @@ onMounted(() => {
 .sheet-leave-to {
   opacity: 0;
   transform: translateY(-16px);
+}
+
+/* Reading navigation — follows content height, no card, no fixed Y */
+.sheet-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: clamp(20px, 3vh, 40px);
+}
+
+.sheet-nav-link {
+  background: none;
+  border: none;
+  padding: 0.3rem 0;
+  cursor: pointer;
+  font-family: var(--font-label);
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  color: var(--ink);
+  text-shadow: 0 1px 10px rgba(252, 247, 238, 0.7);
+  transition: color var(--dur-fast) var(--ease-out),
+              letter-spacing var(--dur-base) var(--ease-out);
+}
+
+.sheet-nav-link:hover {
+  color: var(--ink-dark);
+  letter-spacing: 0.22em;
 }
 
 @media (max-width: 1024px) {

@@ -1,0 +1,23 @@
+
+> webpersonal-client@1.0.0 dev
+> vite
+
+
+  [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m1619[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+[2m21:01:15[22m [33m[1m[vite][22m[39m [33mwarning: <figcaption> cannot be child of <div>, according to HTML specifications. This can cause hydration errors or potentially disrupt future functionality.
+98 |                  <figure class="poster-block tmall">
+99 |                    <div class="tmall-head">
+100|                      <figcaption class="poster-caption">
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+101|                        <span class="caption-title">天猫校园视觉系列</span>
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+102|                        <span class="caption-en">TMALL CAMPUS · 3 POSTERS</span>
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+103|                      </figcaption>
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[39m
+  Plugin: [35mvite:vue[39m
+  File: [36mC:/Users/liuwanting05/Desktop/Webpersonal/Webpersonal/client/src/views/Studio.vue[39m
+[2m21:01:32[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/views/Studio.vue, /src/assets/styles/base.css[22m

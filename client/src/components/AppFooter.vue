@@ -17,7 +17,7 @@
           <p class="footer-group-label">Connect</p>
           <a :href="`mailto:${store.profile.social.email}`">CONTACT</a>
           <a :href="store.profile.social.github" target="_blank" rel="noopener">GitHub</a>
-          <a :href="store.profile.social.linkedin" target="_blank" rel="noopener">LinkedIn</a>
+          <a :href="`tel:${store.profile.social.phone.replace(/\s/g, '')}`">{{ store.profile.social.phone }}</a>
         </div>
       </div>
     </div>

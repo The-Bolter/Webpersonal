@@ -24,8 +24,6 @@
         </div>
       </div>
     </div>
-
-    <FlowerPetalLayer ref="petalLayerRef" />
   </div>
 </template>
 
@@ -35,20 +33,19 @@ import { useRouter } from 'vue-router'
 import gsap from 'gsap'
 import plumSrc from '../assets/index/plum/plum-branch.png'
 import { useAppStore } from '../store'
-import FlowerPetalLayer from './FlowerPetalLayer.vue'
+
+const emit = defineEmits(['guide-done'])
 
 const store = useAppStore()
 const router = useRouter()
 const recoilRef = ref(null)
 const wrapperRef = ref(null)
 const innerRef = ref(null)
-const petalLayerRef = ref(null)
 const guidedId = ref(null)
 let windTl = null
 let driftTl = null
 let guideTl = null
 const guideActive = ref(false)
-let debugTimer = null
 const coreRefs = {}
 const flowerEls = {}
 
@@ -61,9 +58,6 @@ const flowers = [
 ]
 
 const GUIDE_ORDER = ['projects', 'journey', 'studio', 'about', 'contact']
-
-// Debug flag — this round only (single-point origin calibration)
-const DEBUG_PETAL_ORIGIN = true
 
 function setCoreRef(el, id) {
   if (el) coreRefs[id] = el
@@ -100,10 +94,6 @@ function onFlowerClick(f) {
 }
 
 function startGuide() {
-  const debug = new URLSearchParams(window.location.search).has('debug-guide')
-  if (!debug && sessionStorage.getItem('index_flower_guide_seen')) return
-  if (!debug) sessionStorage.setItem('index_flower_guide_seen', '1')
-
   guideActive.value = true
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -121,19 +111,23 @@ function startGuide() {
   })
 
   GUIDE_ORDER.forEach((id, i) => {
-    const t = i * 0.95
+    const t = i * 0.65
     guideTl.add(() => {
       guidedId.value = id
       store.setHovered(id)
       const core = coreRefs[id]
       if (core) {
-        gsap.to(core, { scale: 1.1, duration: 0.2, ease: 'sine.inOut', yoyo: true, repeat: 1 })
+        gsap.to(core, { scale: 1.04, duration: 0.3, ease: 'sine.out' })
       }
     }, t)
     guideTl.add(() => {
       guidedId.value = null
       store.clearHovered()
-    }, t + 0.65)
+      const core = coreRefs[id]
+      if (core) {
+        gsap.to(core, { scale: 1, duration: 0.25, ease: 'sine.inOut' })
+      }
+    }, t + 0.4)
   })
 
   guideTl.play()
@@ -155,38 +149,16 @@ function stopGuide() {
 watch(
   () => store.isLoading,
   (loading) => {
-    if (!loading && !guideActive) {
+    if (!loading && !guideActive.value) {
       setTimeout(() => startGuide(), 350)
     }
   },
   { immediate: true }
 )
 
-// ---- Ambient petal scheduler (debug: single-petal verification) ----
-function runDebugPetal() {
-  if (guideActive.value) return
-  const el = flowerEls.projects
-  if (!el) return
-  const r = el.getBoundingClientRect()
-  const screenX = r.left + r.width / 2
-  const screenY = r.top + r.height / 2
-  petalLayerRef.value?.showOriginMarker(screenX, screenY)
-  petalLayerRef.value?.spawnDebugPetal(screenX, screenY)
-}
-
-function stopDebug() {
-  if (debugTimer) { debugTimer.kill(); debugTimer = null }
-}
-
-// single debug petal 800ms after loading completes (verification mode only)
-watch(
-  () => store.isLoading,
-  (loading) => {
-    if (!loading) {
-      debugTimer = gsap.delayedCall(0.8, () => runDebugPetal())
-    }
-  }
-)
+watch(guideActive, (active, was) => {
+  if (was && !active) emit('guide-done', { skipped: false })
+})
 
 onMounted(() => {
   const el = wrapperRef.value
@@ -231,8 +203,6 @@ onUnmounted(() => {
   if (windTl) windTl.kill()
   if (driftTl) driftTl.kill()
   if (guideTl) guideTl.kill()
-  stopDebug()
-  petalLayerRef.value?.clearAll()
 })
 </script>
 
@@ -245,6 +215,7 @@ onUnmounted(() => {
   max-width: 900px;
   z-index: 1;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .plum-recoil {
@@ -367,19 +338,18 @@ onUnmounted(() => {
   position: absolute;
   bottom: calc(100% + 10px);
   left: 50%;
-  transform: translate(-50%, 6px) scale(0.96);
+  transform: translate(-50%, 4px);
   opacity: 0;
   font-family: var(--font-label);
-  font-size: clamp(14px, 1vw, 17px);
+  font-size: clamp(13px, 0.9vw, 16px);
   font-weight: 500;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ink-dark);
   white-space: nowrap;
-  padding: 0.35rem 0.7rem;
-  border-radius: 2px;
-  background: rgba(252, 247, 238, 0.42);
-  text-shadow: 0 1px 8px rgba(252, 247, 238, 0.9);
+  padding: 0;
+  background: transparent;
+  text-shadow: 0 1px 6px rgba(252, 247, 238, 0.6);
   pointer-events: none;
   transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
 }
@@ -388,7 +358,7 @@ onUnmounted(() => {
 .flower.synced .hotspot-label,
 .flower.guided .hotspot-label {
   opacity: 1;
-  transform: translate(-50%, 0) scale(1);
+  transform: translate(-50%, 0);
 }
 
 @media (max-width: 1024px) {

@@ -1,5 +1,5 @@
 <template>
-  <div class="projects-page">
+  <div class="projects-page" :class="sceneState">
     <!-- Scene coordinate box (matches background cover box exactly) -->
     <div class="scene-box">
       <!-- Unified background frame (dark + lit share one coordinate space) -->
@@ -14,6 +14,8 @@
 
       <!-- Lamp core flash (small, bound to lamp shade) -->
       <div ref="coreRef" class="lamp-core" :class="{ hovered: lampHover }" :style="lampStyle" aria-hidden="true"></div>
+      <!-- Lamp breathing glow (dark-state idle hint, separate from flash) -->
+      <div class="lamp-glow" :class="{ hovered: lampHover }" :style="lampStyle" aria-hidden="true"></div>
 
       <!-- Guide text (shares lamp anchor) -->
       <p
@@ -22,7 +24,7 @@
         :class="{ hovered: lampHover }"
         :style="guideStyle"
         @click="toggleScene"
-      >点亮灯火，看看我的作品。</p>
+      >点灯 · 查看我的项目</p>
 
       <!-- Lamp hotspot (transparent, shares lamp anchor) -->
       <div
@@ -201,6 +203,13 @@ onMounted(() => {
     .to(projRefs[1].value, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 1.6)
     // 1.75s project 03
     .to(projRefs[2].value, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 1.75)
+
+  // first-visit entry cue: guide text gently appears once, then rests
+  gsap.fromTo(
+    guideRef.value,
+    { opacity: 0, y: 6 },
+    { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out', delay: 0.7 }
+  )
 })
 
 onUnmounted(() => {
@@ -267,19 +276,43 @@ onUnmounted(() => {
   opacity: 0.3;
 }
 
+/* Lamp breathing glow — dark-state idle hint, separate from GSAP flash */
+.lamp-glow {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 4%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 218, 160, 0.5) 0%, rgba(255, 198, 130, 0.22) 55%, transparent 100%);
+  opacity: 0;
+  pointer-events: none;
+  animation: lamp-breathe 4.5s ease-in-out infinite;
+}
+
+@keyframes lamp-breathe {
+  0%, 100% { opacity: 0.14; }
+  50% { opacity: 0.28; }
+}
+
+.lamp-glow.hovered {
+  animation: none;
+  opacity: 0.42;
+}
+
 /* Guide text (position via guideStyle, derived from lamp anchor) */
 .guide-text {
   position: absolute;
   margin: 0;
   font-family: var(--font-label);
-  font-size: 0.7rem;
+  font-size: 0.85rem;
   letter-spacing: 0.14em;
-  color: rgba(245, 240, 230, 0.8);
+  color: rgba(245, 240, 230, 0.92);
   cursor: pointer;
   padding: 0.6rem 0.9rem;
-  text-shadow: 0 1px 8px rgba(15, 18, 18, 0.5);
+  text-shadow: 0 1px 8px rgba(15, 18, 18, 0.55);
   pointer-events: auto;
   z-index: 3;
+  opacity: 0;
   transition: color var(--dur-fast) var(--ease-out),
               letter-spacing var(--dur-base) var(--ease-out),
               transform var(--dur-fast) var(--ease-out);
@@ -287,7 +320,7 @@ onUnmounted(() => {
 
 .guide-text:hover,
 .guide-text.hovered {
-  color: rgba(255, 250, 242, 0.98);
+  color: rgba(255, 250, 242, 1);
   letter-spacing: 0.18em;
   transform: translateX(3px);
 }

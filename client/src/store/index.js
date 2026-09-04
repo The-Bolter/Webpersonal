@@ -34,8 +34,9 @@ export const useAppStore = defineStore('app', () => {
     ],
     social: {
       github: 'https://github.com',
-      linkedin: 'https://linkedin.com',
-      email: 'hello@cathy.dev'
+      email: '1352822463@qq.com',
+      wechat: 'Charon-Psc-0220',
+      phone: '136 5085 6921'
     }
   })
 
@@ -109,21 +110,6 @@ export const useAppStore = defineStore('app', () => {
     ]
   })
 
-  const works = ref([
-    { id: 1, title: 'Open Source Library', description: 'Lightweight utility library with 500+ GitHub stars.', category: 'code', link: 'https://github.com' },
-    { id: 2, title: 'Component System', description: 'Accessible, themeable components for modern frameworks.', category: 'design', link: null },
-    { id: 3, title: 'AI Chat Interface', description: 'Multi-model chat with streaming and memory.', category: 'ai', link: 'https://example.com' },
-    { id: 4, title: 'Motion Studies', description: 'Micro-interactions crafted for web applications.', category: 'design', link: null },
-    { id: 5, title: 'RAG Knowledge Base', description: 'Retrieval-augmented generation with citations.', category: 'ai', link: 'https://github.com' },
-    { id: 6, title: 'Browser Extension', description: 'Privacy tool with 2,000+ active users.', category: 'code', link: 'https://github.com' }
-  ])
-
-  const workFilter = ref('all')
-  const filteredWorks = computed(() => {
-    if (workFilter.value === 'all') return works.value
-    return works.value.filter(w => w.category === workFilter.value)
-  })
-
   function toggleMenu() { isMenuOpen.value = !isMenuOpen.value }
   function closeMenu() { isMenuOpen.value = false }
   function finishLoading() { isLoading.value = false }
@@ -135,8 +121,7 @@ export const useAppStore = defineStore('app', () => {
 
   return {
     isMenuOpen, isLoading, hoveredId, ripple,
-    profile, projects, resume, works,
-    workFilter, filteredWorks, featuredProject, otherProjects,
+    profile, projects, resume, featuredProject, otherProjects,
     toggleMenu, closeMenu, finishLoading,
     setHovered, clearHovered, triggerRipple
   }

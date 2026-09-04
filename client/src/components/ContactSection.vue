@@ -4,7 +4,7 @@
       <div class="contact-header ink-reveal">
         <p class="editorial-label">Correspondence</p>
         <h2 class="editorial-title">
-          A Conversation<br><em>Begins</em>
+          Better Call<br><em>Cathy.</em>
         </h2>
       </div>
 
@@ -38,12 +38,16 @@
             <a :href="`mailto:${store.profile.social.email}`">{{ store.profile.social.email }}</a>
           </div>
           <div class="detail-item">
-            <p class="detail-label">GitHub</p>
-            <a :href="store.profile.social.github" target="_blank" rel="noopener">View repositories</a>
+            <p class="detail-label">WeChat</p>
+            <span class="detail-text">{{ store.profile.social.wechat }}</span>
           </div>
           <div class="detail-item">
-            <p class="detail-label">LinkedIn</p>
-            <a :href="store.profile.social.linkedin" target="_blank" rel="noopener">Connect</a>
+            <p class="detail-label">Phone</p>
+            <a :href="`tel:${store.profile.social.phone.replace(/\s/g, '')}`">{{ store.profile.social.phone }}</a>
+          </div>
+          <div class="detail-item">
+            <p class="detail-label">GitHub</p>
+            <a :href="store.profile.social.github" target="_blank" rel="noopener">View repositories ↗</a>
           </div>
         </div>
       </div>
@@ -159,6 +163,13 @@ async function handleSubmit() {
 }
 
 .detail-item a:hover { color: var(--ink-green); }
+
+.detail-text {
+  font-family: var(--font-editorial);
+  font-size: 1rem;
+  color: var(--ink);
+  letter-spacing: 0.04em;
+}
 
 @media (max-width: 768px) {
   .contact-layout { grid-template-columns: 1fr; gap: var(--space-2xl); }
