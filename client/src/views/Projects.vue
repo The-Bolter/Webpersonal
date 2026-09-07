@@ -2,15 +2,17 @@
   <div class="projects-page" :class="sceneState">
     <!-- Scene coordinate box (matches background cover box exactly) -->
     <div class="scene-box">
-      <!-- Unified background frame (dark + lit share one coordinate space) -->
-      <div class="bg-frame">
-        <!-- Dark background -->
-        <img ref="darkRef" class="bg-img bg-dark" :src="darkSrc" :style="darkRegStyle" alt="" aria-hidden="true" />
-        <!-- Lit background (registration base) -->
-        <img ref="litRef" class="bg-img bg-lit" :src="litSrc" alt="" aria-hidden="true" />
+      <div class="project-visuals" :class="{ 'is-ready': visualGroupReady }">
+        <!-- Unified background frame (dark + lit share one coordinate space) -->
+        <div class="bg-frame">
+          <!-- Dark background -->
+          <img ref="darkRef" class="bg-img bg-dark" :src="darkSrc" :style="darkRegStyle" alt="" aria-hidden="true" />
+          <!-- Lit background (registration base) -->
+          <img ref="litRef" class="bg-img bg-lit" :src="litSrc" alt="" aria-hidden="true" />
+        </div>
+        <!-- Fog layer (disperses after lighting) -->
+        <img ref="fogRef" class="bg-img bg-fog" :src="fogSrc" alt="" aria-hidden="true" />
       </div>
-      <!-- Fog layer (disperses after lighting) -->
-      <img ref="fogRef" class="bg-img bg-fog" :src="fogSrc" alt="" aria-hidden="true" />
 
       <!-- Lamp core flash (small, bound to lamp shade) -->
       <div ref="coreRef" class="lamp-core" :class="{ hovered: lampHover }" :style="lampStyle" aria-hidden="true"></div>
@@ -70,9 +72,11 @@ import gsap from 'gsap'
 import darkSrc from '../assets/pages/projects/projects-dark.png'
 import litSrc from '../assets/pages/projects/projects-lit.png'
 import fogSrc from '../assets/pages/projects/projects-fog.png'
+import { waitForVisualGroup } from '../composables/useVisualPreload'
 
 const sceneState = ref('dark') // 'dark' | 'transitioning' | 'lit'
 const lampHover = ref(false)
+const visualGroupReady = ref(false)
 
 const darkRef = ref(null)
 const litRef = ref(null)
@@ -85,6 +89,7 @@ const contentLayerRef = ref(null)
 const projRefs = [ref(null)]
 
 let projectsTimeline = null
+let isActive = true
 
 // Lamp anchor in design coordinates (1912x948 design canvas), centralized for easy tuning
 const PROJECTS_SCENE = {
@@ -155,6 +160,9 @@ function toggleScene() {
 }
 
 onMounted(() => {
+  waitForVisualGroup([darkSrc, litSrc, fogSrc], 1800).then(() => {
+    if (isActive) visualGroupReady.value = true
+  })
   // Debug registration mode — add ?debug-register to URL to see both at 0.5 opacity
   const debugRegister = new URLSearchParams(window.location.search).has('debug-register')
   if (debugRegister) {
@@ -219,6 +227,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  isActive = false
   if (projectsTimeline) projectsTimeline.kill()
 })
 </script>
@@ -242,6 +251,14 @@ onUnmounted(() => {
   pointer-events: none;
   z-index: 0;
 }
+
+.project-visuals {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.55s ease;
+}
+.project-visuals.is-ready { opacity: 1; }
 
 /* Unified background frame — dark + lit share one scale/translate/cover mapping */
 .bg-frame {

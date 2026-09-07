@@ -3,7 +3,13 @@
     <!-- Scene coordinate box: background and nodes use one cover mapping -->
     <div class="journey-scene">
       <div class="journey-bg" aria-hidden="true">
-        <img :src="bgSrc" alt="" />
+        <img
+          :src="bgSrc"
+          alt=""
+          :class="{ 'is-loaded': backgroundReady }"
+          @load="markBackgroundReady"
+          @error="markBackgroundReady"
+        />
       </div>
 
       <!-- Subtle stream motion overlay -->
@@ -97,13 +103,17 @@ import bgSrc from '../assets/pages/journey-bg-v2.png'
 import fandowDaiChunrong from '../assets/journey/fandow/fandow-dai-chunrong.jpg'
 import fandowTeamEntrance from '../assets/journey/fandow/fandow-team-entrance.jpg'
 import smileplusWorkplace from '../assets/journey/smileplus/smileplus-workplace.jpg'
+import { waitForVisualGroup } from '../composables/useVisualPreload'
 
 const openIndex = ref(-1)
 const hoverIndex = ref(-1)
 const litIndex = ref(-1)
 const showHint = ref(false)
+const backgroundReady = ref(false)
 let guideTl = null
 let detailTl = null
+let backgroundFallbackTimer = null
+let isActive = true
 
 const paneRef = ref(null)
 
@@ -298,7 +308,18 @@ function closeDetail() {
   openIndex.value = -1
 }
 
+// The CSS image request is always present.  This only controls a soft reveal;
+// it is released for load, error, and a short route-safe fallback.
+function markBackgroundReady() {
+  backgroundReady.value = true
+}
+
 onMounted(() => {
+  // This remains a hard fallback; normal reveal follows the decoded group.
+  backgroundFallbackTimer = window.setTimeout(markBackgroundReady, 1800)
+  waitForVisualGroup([bgSrc], 1800).then(() => {
+    if (isActive) markBackgroundReady()
+  })
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   if (reduceMotion) return
 
@@ -320,6 +341,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  isActive = false
+  if (backgroundFallbackTimer) window.clearTimeout(backgroundFallbackTimer)
   if (guideTl) guideTl.kill()
   if (detailTl) detailTl.kill()
 })
@@ -357,7 +380,11 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
   object-position: center;
+  opacity: 0;
+  transition: opacity 0.55s ease;
 }
+
+.journey-bg img.is-loaded { opacity: 1; }
 
 /* Stream motion */
 .stream-motion {

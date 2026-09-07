@@ -2,7 +2,7 @@
   <div ref="pageRef" class="studio-page" data-lenis-prevent>
     <!-- Fixed landscape background -->
     <div class="page-bg" aria-hidden="true">
-      <img :src="bgSrc" alt="" />
+      <img :src="bgSrc" alt="" :class="{ 'is-ready': backgroundReady }" />
     </div>
 
     <!-- Subtle readability veil -->
@@ -37,7 +37,7 @@
                   <p class="photo-desc">以真实摄影素材为基础，整理为「暗 / 映 / 隔 / 远」四组视觉主题。</p>
                 </header>
 
-                <div class="photo-grid">
+                <div class="photo-grid" :class="{ 'is-ready': categoryVisualReady }">
                   <figure
                     v-for="(p, i) in photos"
                     :key="p.id"
@@ -51,6 +51,9 @@
                         :alt="`${p.number} ${p.title} / ${p.en} 摄影主视觉`"
                         :loading="i === 0 ? 'eager' : 'lazy'"
                         decoding="async"
+                        :class="{ 'is-loaded': imageReady[p.id] }"
+                        @load="markImageReady(p.id)"
+                        @error="markImageReady(p.id)"
                       />
                     </div>
                     <figcaption class="photo-caption">
@@ -70,11 +73,11 @@
                   <p class="poster-desc">包含编辑排版、艺术海报与校园视觉传播设计。</p>
                 </header>
 
-                <div class="poster-layout">
+                <div class="poster-layout" :class="{ 'is-ready': categoryVisualReady }">
                   <!-- Editorial — largest anchor, left -->
                   <figure class="poster-block editorial">
                     <div class="poster-plate" @click="openFocus(posterWorks, 0)">
-                      <img :src="editorialPage" alt="编辑设计主视觉" loading="eager" decoding="async" />
+                      <img :src="editorialPage" alt="编辑设计主视觉" loading="eager" decoding="async" :class="{ 'is-loaded': imageReady.editorial }" @load="markImageReady('editorial')" @error="markImageReady('editorial')" />
                     </div>
                     <figcaption class="poster-caption">
                       <span class="caption-title">编辑设计</span>
@@ -85,7 +88,7 @@
                   <!-- Art poster — second anchor, top right -->
                   <figure class="poster-block art">
                     <div class="poster-plate" @click="openFocus(posterWorks, 1)">
-                      <img :src="artPoster" alt="艺术海报" loading="lazy" decoding="async" />
+                      <img :src="artPoster" alt="艺术海报" loading="lazy" decoding="async" :class="{ 'is-loaded': imageReady.artPoster }" @load="markImageReady('artPoster')" @error="markImageReady('artPoster')" />
                     </div>
                     <figcaption class="poster-caption">
                       <span class="caption-title">艺术海报</span>
@@ -109,7 +112,7 @@
                         :style="{ '--i': i }"
                         @click="openFocus(posterWorks, 2 + i)"
                       >
-                        <img :src="t.src" :alt="`天猫校园视觉系列 ${i + 1}`" loading="lazy" decoding="async" />
+                        <img :src="t.src" :alt="`天猫校园视觉系列 ${i + 1}`" loading="lazy" decoding="async" :class="{ 'is-loaded': imageReady[`tmall-${i}`] }" @load="markImageReady(`tmall-${i}`)" @error="markImageReady(`tmall-${i}`)" />
                       </div>
                     </div>
                   </figure>
@@ -124,7 +127,7 @@
                   <p class="interface-desc">两个网页界面设计实践。</p>
                 </header>
 
-                <div class="interface-layout">
+                <div class="interface-layout" :class="{ 'is-ready': categoryVisualReady }">
                   <figure
                     v-for="(w, i) in interfaceWorks"
                     :key="w.id"
@@ -133,7 +136,7 @@
                     :style="{ '--i': i }"
                   >
                     <div class="interface-plate" @click="openFocus(interfaceWorks, i)">
-                      <img :src="w.src" :alt="`${w.title} 界面设计`" :loading="i === 0 ? 'eager' : 'lazy'" decoding="async" />
+                      <img :src="w.src" :alt="`${w.title} 界面设计`" :loading="i === 0 ? 'eager' : 'lazy'" decoding="async" :class="{ 'is-loaded': imageReady[w.id] }" @load="markImageReady(w.id)" @error="markImageReady(w.id)" />
                     </div>
                     <figcaption class="interface-caption">
                       <span class="caption-num">{{ w.number }}</span>
@@ -211,10 +214,17 @@ import tmall02 from '../assets/studio/poster/tmall-campus-02.png'
 import tmall03 from '../assets/studio/poster/tmall-campus-03.png'
 import webUi01 from '../assets/studio/interface/web-ui-01.png'
 import webUi02 from '../assets/studio/interface/web-ui-02.png'
+import { waitForVisualGroup } from '../composables/useVisualPreload'
 
 const pageRef = ref(null)
 const maskRef = ref(null)
 const activeCategory = ref('photography')
+const imageReady = ref({})
+const backgroundReady = ref(false)
+const categoryVisualReady = ref(false)
+let revealFallbackTimer = null
+let isActive = true
+let categoryRequest = 0
 
 const categories = [
   { id: 'photography', label: 'Photography', disabled: false },
@@ -266,7 +276,39 @@ function onFocusImageLoad(e) {
 }
 
 function switchCategory(id) {
+  if (id === activeCategory.value) return
   activeCategory.value = id
+  prepareCategory(id)
+}
+
+// Each image owns its own reveal.  There is deliberately no shared preload or
+// decode gate: an error (or a browser decode rejection) must never hide a page.
+function markImageReady(id) {
+  imageReady.value[id] = true
+}
+
+function revealAllImages() {
+  ;[
+    ...photos.map((photo) => photo.id),
+    'editorial',
+    'artPoster',
+    ...tmallSeries.map((_, index) => `tmall-${index}`),
+    ...interfaceWorks.map((work) => work.id)
+  ].forEach(markImageReady)
+}
+
+function categorySources(category) {
+  if (category === 'photography') return photos.map((photo) => photo.src)
+  if (category === 'poster') return posterWorks.map((work) => work.src)
+  return interfaceWorks.map((work) => work.src)
+}
+
+function prepareCategory(category) {
+  const request = ++categoryRequest
+  categoryVisualReady.value = false
+  waitForVisualGroup(categorySources(category), 1800).then(() => {
+    if (isActive && request === categoryRequest) categoryVisualReady.value = true
+  })
 }
 
 function openFocus(group, index) {
@@ -340,9 +382,18 @@ onMounted(() => {
   window.addEventListener('keydown', onKeydown)
   document.documentElement.classList.add('studio-page-active')
   document.body.classList.add('studio-page-active')
+  // A short safety release preserves the browser's native image request even
+  // if an event is missed during a route transition or cache revalidation.
+  revealFallbackTimer = window.setTimeout(revealAllImages, 1200)
+  waitForVisualGroup([bgSrc], 1800).then(() => {
+    if (isActive) backgroundReady.value = true
+  })
+  prepareCategory(activeCategory.value)
 })
 
 onUnmounted(() => {
+  isActive = false
+  if (revealFallbackTimer) window.clearTimeout(revealFallbackTimer)
   window.removeEventListener('resize', computeWindow)
   window.removeEventListener('keydown', onKeydown)
   document.documentElement.classList.remove('studio-page-active')
@@ -370,7 +421,10 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
   object-position: center;
+  opacity: 0;
+  transition: opacity 0.55s ease;
 }
+.page-bg img.is-ready { opacity: 1; }
 
 .page-veil {
   position: absolute;
@@ -534,7 +588,11 @@ onUnmounted(() => {
   gap: clamp(16px, 2vw, 28px);
   width: 100%;
   height: clamp(440px, 62vh, 680px);
+  opacity: 0;
+  transition: opacity 0.5s ease;
 }
+.photo-grid.is-ready { opacity: 1; }
+.photo-grid.is-ready .photo-item { animation: none; opacity: 1; }
 
 .photo-item {
   display: flex;
@@ -607,8 +665,11 @@ onUnmounted(() => {
   object-fit: contain;
   -webkit-mask-image: linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent);
   mask-image: linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent);
-  transition: transform 0.45s var(--ease-out), filter 0.45s var(--ease-out);
+  opacity: 0;
+  transition: opacity 0.45s ease, transform 0.45s var(--ease-out), filter 0.45s var(--ease-out);
 }
+
+.photo-plate img.is-loaded { opacity: 1; }
 
 .photo-item:hover .photo-plate img {
   transform: translateY(-4px);
@@ -655,7 +716,12 @@ onUnmounted(() => {
   grid-template-rows: auto auto;
   gap: clamp(18px, 2.2vw, 30px);
   width: 100%;
+  opacity: 0;
+  transition: opacity 0.5s ease;
 }
+.poster-layout.is-ready { opacity: 1; }
+.poster-layout.is-ready .poster-block,
+.poster-layout.is-ready .tmall-plate { animation: none; opacity: 1; }
 
 .poster-block {
   margin: 0;
@@ -723,8 +789,11 @@ onUnmounted(() => {
   object-fit: contain;
   -webkit-mask-image: linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent);
   mask-image: linear-gradient(to bottom, transparent, black 16px, black calc(100% - 16px), transparent);
-  transition: transform 0.45s var(--ease-out), filter 0.45s var(--ease-out);
+  opacity: 0;
+  transition: opacity 0.45s ease, transform 0.45s var(--ease-out), filter 0.45s var(--ease-out);
 }
+
+.poster-plate img.is-loaded { opacity: 1; }
 
 /* editorial — tall, main anchor */
 .poster-block.editorial .poster-plate {
@@ -802,8 +871,11 @@ onUnmounted(() => {
   object-fit: contain;
   -webkit-mask-image: linear-gradient(to bottom, transparent, black 14px, black calc(100% - 14px), transparent);
   mask-image: linear-gradient(to bottom, transparent, black 14px, black calc(100% - 14px), transparent);
-  transition: transform 0.45s var(--ease-out), filter 0.45s var(--ease-out);
+  opacity: 0;
+  transition: opacity 0.45s ease, transform 0.45s var(--ease-out), filter 0.45s var(--ease-out);
 }
+
+.tmall-plate img.is-loaded { opacity: 1; }
 
 .tmall-plate:hover img {
   transform: translateY(-3px);
@@ -817,7 +889,11 @@ onUnmounted(() => {
   gap: clamp(20px, 3vw, 40px);
   width: 100%;
   align-items: start;
+  opacity: 0;
+  transition: opacity 0.5s ease;
 }
+.interface-layout.is-ready { opacity: 1; }
+.interface-layout.is-ready .interface-block { animation: none; opacity: 1; }
 
 .interface-block {
   margin: 0;
@@ -869,12 +945,14 @@ onUnmounted(() => {
   width: auto;
   height: auto;
   object-fit: contain;
-  opacity: 0.94;
+  opacity: 0;
   box-shadow: 0 8px 28px rgba(90, 78, 62, 0.1);
   -webkit-mask-image: linear-gradient(to bottom, transparent, black 14px, black calc(100% - 14px), transparent);
   mask-image: linear-gradient(to bottom, transparent, black 14px, black calc(100% - 14px), transparent);
   transition: transform 0.4s var(--ease-out), opacity 0.4s var(--ease-out), filter 0.4s var(--ease-out);
 }
+
+.interface-plate img.is-loaded { opacity: 0.94; }
 
 .interface-block:hover .interface-plate img {
   transform: scale(1.008);

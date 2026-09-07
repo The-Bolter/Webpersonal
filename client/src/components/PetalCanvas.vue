@@ -8,6 +8,7 @@ import petal01 from '../assets/index/petals/petal-01.png'
 import petal02 from '../assets/index/petals/petal-02.png'
 import petal03 from '../assets/index/petals/petal-03.png'
 import petal04 from '../assets/index/petals/petal-04.png'
+import { preloadImage } from '../composables/useVisualPreload'
 
 const canvasRef = ref(null)
 
@@ -39,17 +40,8 @@ function randInt(min, max) {
 }
 
 function preloadImages() {
-  return Promise.all(
-    PETAL_SOURCES.map(
-      (src) =>
-        new Promise((resolve) => {
-          const img = new Image()
-          img.onload = () => resolve(img)
-          img.onerror = () => resolve(null)
-          img.src = src
-        })
-    )
-  )
+  return Promise.all(PETAL_SOURCES.map(preloadImage))
+    .then((results) => results.map(({ image, status }) => status === 'loaded' ? image : null))
 }
 
 function setupCanvas() {

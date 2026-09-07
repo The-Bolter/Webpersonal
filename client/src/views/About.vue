@@ -2,7 +2,7 @@
   <div class="about-page">
     <!-- Fixed landscape background -->
     <div class="page-bg" aria-hidden="true">
-      <img :src="bgSrc" alt="" />
+      <img :src="bgSrc" alt="" :class="{ 'is-ready': backgroundReady }" />
     </div>
 
     <!-- Subtle readability veil -->
@@ -16,19 +16,26 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import bgSrc from '../assets/pages/about.png'
 import AboutSection from '../components/AboutSection.vue'
 import { useInkReveal } from '../composables/useInkReveal'
+import { waitForVisualGroup } from '../composables/useVisualPreload'
 
 useInkReveal()
+const backgroundReady = ref(false)
+let isActive = true
 
 onMounted(() => {
+  waitForVisualGroup([bgSrc], 1800).then(() => {
+    if (isActive) backgroundReady.value = true
+  })
   document.documentElement.classList.add('about-page-active')
   document.body.classList.add('about-page-active')
 })
 
 onUnmounted(() => {
+  isActive = false
   document.documentElement.classList.remove('about-page-active')
   document.body.classList.remove('about-page-active')
 })
@@ -55,7 +62,10 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
   object-position: center;
+  opacity: 0;
+  transition: opacity 0.55s ease;
 }
+.page-bg img.is-ready { opacity: 1; }
 
 .page-veil {
   position: absolute;

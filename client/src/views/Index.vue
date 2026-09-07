@@ -2,11 +2,13 @@
   <div class="index-page">
     <!-- Fixed landscape scene (always visible) -->
     <div class="scene">
-      <ConceptArtLayer />
-      <WaterMotionLayer />
-      <WaterRippleLayer />
-      <PlumBranchLayer @guide-done="onGuideDone" />
-      <PetalCanvas ref="petalRef" />
+      <div class="scene-visuals" :class="{ 'is-ready': visualGroupReady }">
+        <ConceptArtLayer />
+        <WaterMotionLayer />
+        <WaterRippleLayer />
+        <PlumBranchLayer @guide-done="onGuideDone" />
+        <PetalCanvas ref="petalRef" />
+      </div>
 
       <!-- Soft fog behind content (no visible boundary) -->
       <div class="content-haze" aria-hidden="true"></div>
@@ -36,7 +38,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import gsap from 'gsap'
 import ConceptArtLayer from '../components/ConceptArtLayer.vue'
 import PlumBranchLayer from '../components/PlumBranchLayer.vue'
@@ -51,11 +53,20 @@ import IndexStudio from '../components/index/IndexStudio.vue'
 import IndexAbout from '../components/index/IndexAbout.vue'
 import IndexContact from '../components/index/IndexContact.vue'
 import { useAppStore } from '../store'
+import { waitForVisualGroup } from '../composables/useVisualPreload'
+import conceptSrc from '../assets/index/concept/index-v1-concept.png'
+import plumSrc from '../assets/index/plum/plum-branch.png'
+import petal01 from '../assets/index/petals/petal-01.png'
+import petal02 from '../assets/index/petals/petal-02.png'
+import petal03 from '../assets/index/petals/petal-03.png'
+import petal04 from '../assets/index/petals/petal-04.png'
 
 const store = useAppStore()
 const activeIndex = ref(0)
 const sheetRef = ref(null)
 const petalRef = ref(null)
+const visualGroupReady = ref(false)
+let isActive = true
 
 const sheets = [
   IndexHeroContent,
@@ -82,6 +93,10 @@ function onGuideDone(detail) {
 }
 
 onMounted(() => {
+  waitForVisualGroup([conceptSrc, plumSrc, petal01, petal02, petal03, petal04], 1800)
+    .then(() => {
+      if (isActive) visualGroupReady.value = true
+    })
   // Content entrance — fade in + slight rise, then stays stable
   if (sheetRef.value) {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -93,6 +108,10 @@ onMounted(() => {
       )
     }
   }
+})
+
+onUnmounted(() => {
+  isActive = false
 })
 </script>
 
@@ -108,6 +127,15 @@ onMounted(() => {
   pointer-events: none;
   z-index: 0;
 }
+
+.scene-visuals {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.55s ease;
+}
+
+.scene-visuals.is-ready { opacity: 1; }
 
 /* Soft fog behind content — radial, no visible boundary */
 .content-haze {
