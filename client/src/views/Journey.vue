@@ -54,9 +54,10 @@
       <div v-if="openIndex !== -1" ref="paneRef" class="journey-reading-pane">
         <div class="pane-veil" aria-hidden="true"></div>
         <div class="pane-content">
-          <p class="pane-year">{{ nodes[openIndex].year }}</p>
+          <p class="pane-year">{{ nodes[openIndex].yearRange }}</p>
           <h3 class="pane-title">{{ nodes[openIndex].title }}</h3>
           <p class="pane-intro">{{ nodes[openIndex].desc }}</p>
+          <p v-if="nodes[openIndex].note" class="pane-note">{{ nodes[openIndex].note }}</p>
           <div class="pane-rule" aria-hidden="true"></div>
           <div class="pane-sections">
             <div v-for="s in activeSections" :key="s.num" class="pane-section">
@@ -69,6 +70,21 @@
           </div>
           <button class="pane-collapse" @click="closeDetail">收起</button>
         </div>
+
+        <!-- Field notes photos — beside the reading card -->
+        <div v-if="currentPhotos.length" class="journey-photos" :class="{ single: currentPhotos.length === 1 }">
+          <p class="photos-label">现场记录</p>
+          <div class="photos-row">
+            <figure
+              v-for="(ph, i) in currentPhotos"
+              :key="i"
+              class="photo-fig"
+              :class="`photo-${i}`"
+            >
+              <img :src="ph.src" :alt="ph.alt" loading="lazy" decoding="async" />
+            </figure>
+          </div>
+        </div>
       </div>
     </transition>
   </div>
@@ -78,6 +94,9 @@
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import gsap from 'gsap'
 import bgSrc from '../assets/pages/journey-bg-v2.png'
+import fandowDaiChunrong from '../assets/journey/fandow/fandow-dai-chunrong.jpg'
+import fandowTeamEntrance from '../assets/journey/fandow/fandow-team-entrance.jpg'
+import smileplusWorkplace from '../assets/journey/smileplus/smileplus-workplace.jpg'
 
 const openIndex = ref(-1)
 const hoverIndex = ref(-1)
@@ -89,14 +108,107 @@ let detailTl = null
 const paneRef = ref(null)
 
 // Journey nodes — centralized config for manual tuning (design % within scene coordinate space)
-// Coordinates are manually calibrated — DO NOT modify x/y.
+// x/y are manually calibrated along the stream — the 6 existing coordinates are preserved.
 const JOURNEY_NODES = [
-  { id: 'campus', year: '2024', title: '校园经历', desc: '校园项目与能力积累', x: '20%', y: '45%', details: ['占位内容：校园项目经历', '占位内容：能力积累'] },
-  { id: 'seo', year: '2025', title: '海外 SEO / 内容增长', desc: '海外内容增长与数据分析', x: '18%', y: '54%', details: ['占位内容：海外内容增长', '占位内容：数据分析'] },
-  { id: 'kol', year: '2025', title: '达人商务 / 内容运营', desc: '内容合作与项目执行', x: '32%', y: '59%', details: ['占位内容：内容合作', '占位内容：项目执行'] },
-  { id: 'product', year: '2026', title: '产品运营', desc: '产品分析与用户增长', x: '22%', y: '72%', details: ['占位内容：产品分析', '占位内容：用户增长'] },
-  { id: 'aixp', year: '2026', title: 'AI × Product', desc: 'AI 产品探索与应用实践', x: '40%', y: '77%', details: ['占位内容：AI 产品探索', '占位内容：应用实践'] },
-  { id: 'now', year: 'NOW', title: 'AI + Coding', desc: '独立项目与技术实践', x: '55%', y: '87%', details: ['占位内容：独立项目', '占位内容：技术实践'] }
+  {
+    id: 'tmall',
+    year: '2024',
+    yearRange: '2024 — 2025',
+    title: 'Community',
+    desc: '天猫校园 · 校园用户增长',
+    x: '20%', y: '45%',
+    details: [
+      '私域搭建 · 活动增长 · 校园资源整合',
+      '200+ 用户社群 · 1500+ 品牌样品 · 单场曝光 1.2万+',
+      '用户增长 · 社群运营 · 活动策划 · 商业转化'
+    ]
+  },
+  {
+    id: 'tailu',
+    year: '2024/25',
+    yearRange: '2024 — 2025',
+    title: 'AI Practice',
+    desc: '泰炉 AI · 项目策略运营',
+    x: '18%', y: '54%',
+    details: [
+      '企业流程诊断 · 数据可视化 · AIGC应用',
+      '200+ 企业业务数据 · 15+ 诊断报告 · 内容效率 +40%',
+      'AI应用 · 流程优化 · 数据分析 · 企业需求洞察'
+    ]
+  },
+  {
+    id: 'duoplus',
+    year: '2025',
+    yearRange: '2025',
+    title: 'Global',
+    desc: 'DuoPlus · 产品增长运营',
+    x: '32%', y: '59%',
+    details: [
+      '海外用户洞察 · 搜索增长 · 产品价值表达',
+      '3种语言市场 · 20+ 深度内容 · 自然搜索 +23.7%',
+      '海外增长 · 用户需求 · 工具产品 · 竞品分析'
+    ]
+  },
+  {
+    id: 'fandao',
+    year: '2026',
+    yearRange: '2026',
+    title: 'Commerce',
+    desc: '凡岛网络 · 明星商务运营',
+    x: '22%', y: '72%',
+    photos: [
+      { src: fandowDaiChunrong, alt: '戴春荣现场记录' },
+      { src: fandowTeamEntrance, alt: '团队入场现场' }
+    ],
+    details: [
+      '明星商业项目 · 内容数据分析 · 跨部门协同',
+      '林心如 / 戴春荣合作 · 4+ 产品线 · 3场明星拍摄',
+      '商业项目推进 · 内容转化判断 · 资源协同 · AI知识沉淀'
+    ]
+  },
+  {
+    id: 'usmile',
+    year: '2026',
+    yearRange: '2026',
+    title: 'Growth',
+    desc: 'usmile 笑容加 · 产品策略运营',
+    x: '40%', y: '77%',
+    photos: [
+      { src: smileplusWorkplace, alt: '笑容加工作现场' }
+    ],
+    details: [
+      '达人增长模型 · 内容实验 · 素材生命周期管理',
+      '合作转化 70%+ · 月GMV +15.3% · ROI 1.78 → 1.85',
+      '增长实验 · 内容策略 · 数据复盘 · 投放优化'
+    ]
+  },
+  {
+    id: 'netease',
+    year: '2026',
+    yearRange: '2026',
+    title: 'Product',
+    desc: '网易互娱 · 产品营销运营',
+    note: 'UU远程 / 网易云游戏平台',
+    x: '48%', y: '82%',
+    details: [
+      '云游戏需求洞察 · UU远程增长分析 · 创作者生态运营',
+      '新增 30%+ · 获客成本 -43% · 曝光 +31% · 互动 7×+',
+      '需求判断 · 数据增长 · 场景设计 · AI提效'
+    ]
+  },
+  {
+    id: 'now',
+    year: 'NOW',
+    yearRange: 'NOW',
+    title: 'AI Lab',
+    desc: 'AI Intelligence · 个人产品实践',
+    x: '55%', y: '87%',
+    details: [
+      '行业情报系统 · 信息价值体系 · AI辅助开发',
+      'AI / Gaming 双领域 · 30min 自动刷新 · S/A/B/C 价值分级',
+      'AI产品设计 · 信息架构 · Vibe Coding · 0→1开发'
+    ]
+  }
 ]
 
 const nodes = JOURNEY_NODES
@@ -110,8 +222,12 @@ const PANE_SECTIONS = [
 const activeSections = computed(() => {
   if (openIndex.value === -1) return []
   const details = nodes[openIndex.value].details || []
-  const texts = details.concat(['占位内容：待补充', '占位内容：待补充']).slice(0, 3)
-  return PANE_SECTIONS.map((s, i) => ({ ...s, text: texts[i] }))
+  return PANE_SECTIONS.map((s, i) => ({ ...s, text: details[i] || '' }))
+})
+
+const currentPhotos = computed(() => {
+  if (openIndex.value === -1) return []
+  return nodes[openIndex.value].photos || []
 })
 
 function animateContentOut(done) {
@@ -134,18 +250,19 @@ function animateContentIn() {
   const title = pane.querySelector('.pane-title')
   const rule = pane.querySelector('.pane-rule')
   const intro = pane.querySelector('.pane-intro')
+  const note = pane.querySelector('.pane-note')
   const sections = pane.querySelectorAll('.pane-section')
 
   if (detailTl) detailTl.kill()
 
   if (reduceMotion) {
-    gsap.set([content, year, title, intro, ...sections], { opacity: 1, y: 0 })
+    gsap.set([content, year, title, intro, note, ...sections], { opacity: 1, y: 0 })
     gsap.set(rule, { scaleX: 1 })
     return
   }
 
   gsap.set(content, { opacity: 1, y: 0 })
-  gsap.set([year, title, intro], { opacity: 0, y: 5 })
+  gsap.set([year, title, intro, note], { opacity: 0, y: 5 })
   gsap.set(rule, { scaleX: 0, transformOrigin: 'left center' })
   gsap.set(sections, { opacity: 0, y: 8 })
 
@@ -154,6 +271,7 @@ function animateContentIn() {
     .to(title, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }, 0.20)
     .to(rule, { scaleX: 1, duration: 0.35, ease: 'sine.out' }, 0.30)
     .to(intro, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }, 0.40)
+    .to(note, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }, 0.46)
     .to(sections, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out', stagger: 0.12 }, 0.50)
 }
 
@@ -536,6 +654,14 @@ onUnmounted(() => {
   font-family: var(--font-body);
   font-size: 0.9rem;
   color: var(--ink-light);
+  margin: 0 0 0.3rem;
+}
+
+.pane-note {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--bark);
   margin: 0 0 var(--space-md);
 }
 
@@ -614,6 +740,85 @@ onUnmounted(() => {
   opacity: 0;
 }
 
+/* ---- Field notes photos — beside the reading card ---- */
+.journey-photos {
+  position: absolute;
+  right: calc(100% + 24px);
+  top: 4px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: auto;
+}
+
+.photos-label {
+  font-family: var(--font-label);
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  color: var(--bark);
+  opacity: 0.7;
+  margin: 0;
+}
+
+.photos-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.photo-fig {
+  margin: 0;
+  opacity: 0;
+  animation: photo-in 0.6s var(--ease-out) both;
+}
+
+.photo-fig.photo-0 {
+  width: clamp(220px, 18vw, 340px);
+  animation-delay: 0.15s;
+}
+
+.photo-fig.photo-1 {
+  width: clamp(180px, 15vw, 280px);
+  margin-top: 32px;
+  animation-delay: 0.32s;
+}
+
+.journey-photos.single .photo-fig {
+  width: clamp(280px, 24vw, 420px);
+  margin-top: 0;
+}
+
+.photo-fig img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 3px;
+  box-shadow: 0 8px 28px rgba(90, 78, 62, 0.1);
+  filter: saturate(0.92) contrast(0.99);
+  opacity: 0.95;
+  transition: transform 0.35s var(--ease-out), opacity 0.35s var(--ease-out);
+  cursor: zoom-in;
+}
+
+.photo-fig:hover img {
+  transform: scale(1.01);
+  opacity: 1;
+}
+
+@keyframes photo-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1280px) {
+  .journey-photos {
+    right: auto;
+    left: 0;
+    top: calc(100% + 16px);
+  }
+}
+
 @media (max-width: 768px) {
   .journey-scene {
     width: max(100%, calc(100dvh * 1.35));
@@ -639,6 +844,21 @@ onUnmounted(() => {
     transform: translateX(-50%);
     width: min(76vw, 420px);
     height: auto;
+  }
+
+  .journey-photos {
+    left: 0;
+    right: auto;
+    top: calc(100% + 12px);
+  }
+  .photo-fig.photo-0 {
+    width: clamp(160px, 38vw, 220px);
+  }
+  .photo-fig.photo-1 {
+    width: clamp(130px, 32vw, 180px);
+  }
+  .journey-photos.single .photo-fig {
+    width: clamp(200px, 46vw, 260px);
   }
 }
 </style>

@@ -1,45 +1,38 @@
 <template>
   <section id="about" class="about-section">
     <div class="container">
-      <!-- Section header — placed at top-left, editorial style -->
+      <!-- Section header — top-left, editorial style -->
       <div class="about-header ink-reveal">
-        <p class="editorial-label">关于我</p>
-        <h2 class="editorial-title about-title">关注方向与成长</h2>
-        <p class="about-lead">关注 AI 产品、智能工作流与增长实践，持续探索如何用产品思维解决问题，用创造力把想法真正落地。</p>
+        <p class="editorial-label">ABOUT / 关于我</p>
+        <h2 class="about-title">我是 Catherine。</h2>
+        <p class="about-lead">信息管理与信息系统专业本科生，关注 AI 产品、智能工作流与增长实践。</p>
+        <p class="about-lead">从内容与运营，到产品与独立项目，我喜欢把复杂问题拆解成结构，并推动它真正落地。</p>
       </div>
 
-      <!-- Philosophy cards — sparse, only 3 items, wide spacing -->
+      <!-- Three info cards — sparse, horizontal -->
       <div class="philosophy-row">
         <div
-          v-for="(item, i) in store.profile.philosophy"
-          :key="item.title"
-          class="philosophy-label-card museum-label ink-reveal"
+          v-for="(card, i) in cards"
+          :key="card.title"
+          class="philosophy-label-card ink-reveal"
           :class="`ink-reveal-delay-${i + 1}`"
         >
-          <h3>{{ item.title }}</h3>
-          <p>{{ item.text }}</p>
+          <h3><span class="card-num">{{ card.num }}</span>{{ card.title }}</h3>
+          <ul class="card-list">
+            <li v-for="line in card.items" :key="line">{{ line }}</li>
+          </ul>
         </div>
-      </div>
-
-      <!-- Bio — narrow, poetic, maximum ~40 chars per line -->
-      <div class="about-bio ink-reveal ink-reveal-delay-3">
-        <p v-for="(paragraph, i) in store.profile.bio" :key="i">{{ paragraph }}</p>
-      </div>
-
-      <!-- Disciplines — comma separated, editorial style -->
-      <div class="about-disciplines ink-reveal ink-reveal-delay-3">
-        <p class="disciplines-label">能力与实践</p>
-        <p class="disciplines-list">
-          {{ store.profile.skills.join(' · ') }}
-        </p>
       </div>
     </div>
   </section>
 </template>
 
 <script setup>
-import { useAppStore } from '../store'
-const store = useAppStore()
+const cards = [
+  { num: '01', title: '关注方向', items: ['AI 产品', '智能工作流', '增长与用户运营', '产品策划'] },
+  { num: '02', title: '做事方式', items: ['观察问题', '拆解结构', '快速验证', '推进落地'] },
+  { num: '03', title: '工作之外', items: ['摄影', '视觉设计', '写作与内容表达'] }
+]
 </script>
 
 <style scoped>
@@ -49,7 +42,7 @@ const store = useAppStore()
 
 .about-header {
   margin-bottom: var(--space-3xl);
-  max-width: 520px;
+  max-width: 560px;
 }
 
 .about-header .editorial-label {
@@ -61,86 +54,68 @@ const store = useAppStore()
 
 .about-title {
   font-family: 'Songti SC', 'SimSun', 'Noto Serif SC', 'Source Han Serif SC', serif;
-  font-size: clamp(38px, 3vw, 58px);
+  font-size: clamp(40px, 3.4vw, 52px);
   font-weight: 500;
   line-height: 1.2;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   color: var(--ink-dark);
 }
 
 .about-lead {
   margin-top: var(--space-md);
-  font-size: 1rem;
+  font-size: 0.98rem;
   line-height: 1.9;
   color: var(--ink-light);
 }
 
-/* Philosophy cards — generous spacing */
+/* Cards — light, ink-paper restraint */
 .philosophy-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-2xl);
-  margin-bottom: var(--space-4xl);
 }
 
 .philosophy-label-card {
   max-width: 320px;
+  background: rgba(240, 232, 218, 0.32);
+  backdrop-filter: blur(2px);
+  border: 1px solid rgba(168, 157, 140, 0.1);
+  border-radius: 8px;
+  padding: var(--space-xl);
+  box-shadow: none;
 }
 
 .philosophy-label-card h3 {
   font-family: var(--font-editorial);
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 500;
   color: var(--ink-dark);
-  margin-bottom: var(--space-md);
+  margin: 0 0 var(--space-md);
   letter-spacing: 0.04em;
 }
 
-.philosophy-label-card p {
-  font-size: 0.88rem;
-  color: var(--ink-light);
-  line-height: 1.85;
-  margin: 0;
-}
-
-/* Bio — narrow, centered, poetic measure */
-.about-bio {
-  max-width: 560px;
-  margin-bottom: var(--space-3xl);
-}
-
-.about-bio p {
-  font-size: 1rem;
-  line-height: 2;
-  color: var(--ink-light);
-  margin-bottom: var(--space-lg);
-}
-
-/* Disciplines — editorial comma list */
-.about-disciplines {
-  padding-top: var(--space-2xl);
-  border-top: 1px solid rgba(139, 132, 120, 0.12);
-}
-
-.disciplines-label {
+.card-num {
   font-family: var(--font-label);
-  font-size: 0.65rem;
+  font-size: 0.7rem;
+  font-weight: 500;
   color: var(--bark);
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  margin-bottom: var(--space-sm);
+  letter-spacing: 0.12em;
+  margin-right: 0.6rem;
 }
 
-.disciplines-list {
-  font-family: var(--font-editorial);
-  font-size: 1rem;
-  color: var(--ink-light);
-  letter-spacing: 0.04em;
+.card-list {
+  list-style: none;
+  padding: 0;
   margin: 0;
+}
+
+.card-list li {
+  font-size: 0.9rem;
+  color: var(--ink);
+  line-height: 1.85;
 }
 
 @media (max-width: 768px) {
   .philosophy-row { grid-template-columns: 1fr; gap: var(--space-xl); }
-  .about-bio { max-width: 100%; }
 }
 </style>

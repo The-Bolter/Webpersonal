@@ -41,18 +41,24 @@
       <h1 ref="titleRef" class="content-title">我的项目</h1>
       <p ref="subRef" class="content-sub">从问题出发，把想法真正做出来。</p>
       <div class="project-list">
-        <div
+        <a
           v-for="(p, i) in projects"
           :key="p.num"
           class="project-item"
+          :href="p.href"
+          target="_blank"
+          rel="noopener noreferrer"
+          :aria-label="`打开 ${p.title} 项目`"
           :ref="el => setProjRef(el, i)"
         >
           <span class="project-num">{{ p.num }}</span>
           <div class="project-body">
             <h3 class="project-title">{{ p.title }}</h3>
             <p class="project-tags">{{ p.tags }}</p>
+            <p class="project-desc">{{ p.desc }}</p>
+            <span class="project-link">VIEW PROJECT ↗</span>
           </div>
-        </div>
+        </a>
       </div>
     </div>
   </div>
@@ -76,7 +82,7 @@ const guideRef = ref(null)
 const titleRef = ref(null)
 const subRef = ref(null)
 const contentLayerRef = ref(null)
-const projRefs = [ref(null), ref(null), ref(null)]
+const projRefs = [ref(null)]
 
 let projectsTimeline = null
 
@@ -124,9 +130,13 @@ const darkRegStyle = {
 const FOG_DISPERSION = { x: 45, y: -12, scale: 1.04, duration: 2.0 }
 
 const projects = [
-  { num: '01', title: 'AI 情报系统', tags: 'AI / 数据 / 自动化' },
-  { num: '02', title: 'KOL 建联 Agent', tags: 'AI / Agent / 增长' },
-  { num: '03', title: '个人知识库', tags: 'AI / 产品 / 知识管理' }
+  {
+    num: '01',
+    title: 'AI 情报系统',
+    tags: 'AI / 数据 / 自动化',
+    desc: '聚合 AI 技术趋势、开源项目与游戏运营热点的智能情报系统。',
+    href: 'https://ai-intelligence-hub.pages.dev'
+  }
 ]
 
 function setProjRef(el, i) {
@@ -199,10 +209,6 @@ onMounted(() => {
     .to(subRef.value, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, 1.3)
     // 1.45s project 01
     .to(projRefs[0].value, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 1.45)
-    // 1.60s project 02
-    .to(projRefs[1].value, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 1.6)
-    // 1.75s project 03
-    .to(projRefs[2].value, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 1.75)
 
   // first-visit entry cue: guide text gently appears once, then rests
   gsap.fromTo(
@@ -383,13 +389,16 @@ onUnmounted(() => {
   gap: var(--space-md);
   padding: var(--space-md) 0;
   border-top: 1px solid rgba(139, 132, 120, 0.2);
+  border-bottom: 1px solid rgba(139, 132, 120, 0.2);
+  text-decoration: none;
   cursor: pointer;
   opacity: 0;
   transform: translateY(16px);
+  transition: transform 0.3s var(--ease-out);
 }
 
 .project-item:hover {
-  opacity: 0.72;
+  transform: translateX(4px);
 }
 
 .project-num {
@@ -400,6 +409,12 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
+.project-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 .project-title {
   font-family: var(--font-editorial);
   font-size: 1.12rem;
@@ -408,6 +423,11 @@ onUnmounted(() => {
   letter-spacing: 0.03em;
   margin: 0;
   text-shadow: 0 1px 10px rgba(252, 247, 238, 0.6);
+  transition: color 0.3s var(--ease-out);
+}
+
+.project-item:hover .project-title {
+  color: var(--ink-green);
 }
 
 .project-tags {
@@ -417,6 +437,28 @@ onUnmounted(() => {
   color: var(--ink-green);
   letter-spacing: 0.08em;
   margin: 0.15rem 0 0;
+}
+
+.project-desc {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--ink);
+  margin: 0.4rem 0 0;
+}
+
+.project-link {
+  font-family: var(--font-label);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  color: var(--bark);
+  margin: 0.5rem 0 0;
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-out);
+}
+
+.project-item:hover .project-link {
+  opacity: 1;
 }
 
 @media (max-width: 768px) {
