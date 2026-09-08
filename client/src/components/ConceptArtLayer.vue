@@ -1,11 +1,11 @@
 <template>
   <div class="concept-layer" aria-hidden="true">
-    <img :src="conceptSrc" alt="" />
+    <img :src="conceptSrc" alt="" fetchpriority="high" />
   </div>
 </template>
 
 <script setup>
-import conceptSrc from '../assets/index/concept/index-v1-concept.png'
+import conceptSrc from '../assets/index/concept/index-v1-concept.lossless.webp'
 </script>
 
 <style scoped>

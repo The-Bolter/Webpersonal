@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted, onActivated, onDeactivated } from 'vue'
 import gsap from 'gsap'
 import ConceptArtLayer from '../components/ConceptArtLayer.vue'
 import PlumBranchLayer from '../components/PlumBranchLayer.vue'
@@ -54,12 +54,8 @@ import IndexAbout from '../components/index/IndexAbout.vue'
 import IndexContact from '../components/index/IndexContact.vue'
 import { useAppStore } from '../store'
 import { waitForVisualGroup } from '../composables/useVisualPreload'
-import conceptSrc from '../assets/index/concept/index-v1-concept.png'
-import plumSrc from '../assets/index/plum/plum-branch.png'
-import petal01 from '../assets/index/petals/petal-01.png'
-import petal02 from '../assets/index/petals/petal-02.png'
-import petal03 from '../assets/index/petals/petal-03.png'
-import petal04 from '../assets/index/petals/petal-04.png'
+import conceptSrc from '../assets/index/concept/index-v1-concept.lossless.webp'
+import plumSrc from '../assets/index/plum/plum-branch.lossless.webp'
 
 const store = useAppStore()
 const activeIndex = ref(0)
@@ -67,6 +63,11 @@ const sheetRef = ref(null)
 const petalRef = ref(null)
 const visualGroupReady = ref(false)
 let isActive = true
+let idleHandle = null
+let cancelIdle = null
+let petalsStarted = false
+let petalsStarting = false
+let petalFallbackTimer = null
 
 const sheets = [
   IndexHeroContent,
@@ -89,14 +90,47 @@ function goBack() {
 }
 
 function onGuideDone(detail) {
-  petalRef.value?.start(detail || {})
+  ensurePetalsStarted(detail || { skipped: false })
 }
 
+async function ensurePetalsStarted(detail = { skipped: true }) {
+  if (petalsStarted || petalsStarting || !petalRef.value) return
+  petalsStarting = true
+  try {
+    const started = await petalRef.value.start(detail)
+    if (started) petalsStarted = true
+  } finally {
+    petalsStarting = false
+  }
+}
+
+watch(visualGroupReady, (ready) => {
+  if (ready) ensurePetalsStarted()
+})
+
 onMounted(() => {
-  waitForVisualGroup([conceptSrc, plumSrc, petal01, petal02, petal03, petal04], 1800)
+  waitForVisualGroup([conceptSrc, plumSrc], 1800)
     .then(() => {
-      if (isActive) visualGroupReady.value = true
+      if (!isActive) return
+      visualGroupReady.value = true
+      const warmRoutes = () => {
+        if (!isActive) return
+        // Warm only the two most likely next route chunks after the first
+        // scene is ready; their images remain unrequested until route entry.
+        import('../views/Projects.vue')
+        import('../views/Journey.vue')
+      }
+      if ('requestIdleCallback' in window) {
+        idleHandle = window.requestIdleCallback(warmRoutes, { timeout: 2000 })
+        cancelIdle = () => window.cancelIdleCallback(idleHandle)
+      } else {
+        idleHandle = window.setTimeout(warmRoutes, 1800)
+        cancelIdle = () => window.clearTimeout(idleHandle)
+      }
     })
+  petalFallbackTimer = window.setTimeout(() => {
+    ensurePetalsStarted({ skipped: true })
+  }, 2000)
   // Content entrance — fade in + slight rise, then stays stable
   if (sheetRef.value) {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -112,6 +146,22 @@ onMounted(() => {
 
 onUnmounted(() => {
   isActive = false
+  if (petalFallbackTimer) window.clearTimeout(petalFallbackTimer)
+  petalRef.value?.stop()
+  petalsStarted = false
+  petalsStarting = false
+  if (cancelIdle) cancelIdle()
+})
+
+onActivated(() => {
+  ensurePetalsStarted({ skipped: true })
+})
+
+onDeactivated(() => {
+  if (petalFallbackTimer) window.clearTimeout(petalFallbackTimer)
+  petalRef.value?.stop()
+  petalsStarted = false
+  petalsStarting = false
 })
 </script>
 

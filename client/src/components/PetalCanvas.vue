@@ -30,6 +30,11 @@ let particles = []
 let spawnTimeouts = []
 let gustTimer = null
 let resizeHandler = null
+let preloadStarted = false
+let isActive = true
+let preloadPromise = null
+let startPromise = null
+let lifecycleToken = 0
 
 function rand(min, max) {
   return min + Math.random() * (max - min)
@@ -40,8 +45,35 @@ function randInt(min, max) {
 }
 
 function preloadImages() {
-  return Promise.all(PETAL_SOURCES.map(preloadImage))
-    .then((results) => results.map(({ image, status }) => status === 'loaded' ? image : null))
+  return Promise.all(PETAL_SOURCES.map(async (src) => {
+    const result = await preloadImage(src)
+    if (result.status === 'loaded') return result.image
+    if (result.status === 'error') return null
+    return waitForLateImage(result.image)
+  }))
+    .then((results) => results.filter(Boolean))
+}
+
+function waitForLateImage(image, timeout = 2200) {
+  if (!image) return Promise.resolve(null)
+  if (image.complete && image.naturalWidth > 0) return Promise.resolve(image)
+
+  return new Promise((resolve) => {
+    let timer = null
+    const onLoad = () => finish(image.naturalWidth > 0 ? image : null)
+    const onError = () => finish(null)
+    const finish = (result) => {
+      if (timer) window.clearTimeout(timer)
+      image.removeEventListener('load', onLoad)
+      image.removeEventListener('error', onError)
+      resolve(result)
+    }
+    image.addEventListener('load', onLoad, { once: true })
+    image.addEventListener('error', onError, { once: true })
+    timer = window.setTimeout(() => {
+      finish(image.complete && image.naturalWidth > 0 ? image : null)
+    }, timeout)
+  })
 }
 
 function setupCanvas() {
@@ -153,24 +185,49 @@ function burst() {
   }
 }
 
-function start(detail) {
-  if (started) return
-  if (!imagesReady) {
-    pendingStart = detail || {}
-    return
+async function start(detail) {
+  if (started) return true
+  pendingStart = detail || {}
+  if (startPromise) return startPromise
+
+  const token = lifecycleToken
+  startPromise = (async () => {
+    const loaded = await beginPreload()
+    if (!isActive || token !== lifecycleToken || !loaded.length) return false
+
+    images = loaded
+    imagesReady = true
+    const startDetail = pendingStart
+    pendingStart = null
+    started = true
+    if (!rafId) {
+      lastTime = performance.now()
+      rafId = requestAnimationFrame(tick)
+    }
+    const skipped = (startDetail && startDetail.skipped) || false
+    const delay = skipped ? rand(1.2, 1.8) : rand(0.9, 1.4)
+    gustTimer = setTimeout(() => {
+      if (!started) return
+      burst()
+      scheduleNextBurst()
+    }, delay * 1000)
+    return true
+  })()
+
+  try {
+    return await startPromise
+  } finally {
+    startPromise = null
   }
-  started = true
-  const skipped = (detail && detail.skipped) || false
-  const delay = skipped ? rand(1.2, 1.8) : rand(0.9, 1.4)
-  gustTimer = setTimeout(() => {
-    if (!started) return
-    burst()
-    scheduleNextBurst()
-  }, delay * 1000)
 }
 
 function stop() {
+  lifecycleToken += 1
   started = false
+  if (rafId) {
+    cancelAnimationFrame(rafId)
+    rafId = null
+  }
   if (gustTimer) clearTimeout(gustTimer)
   spawnTimeouts.forEach((t) => clearTimeout(t))
   spawnTimeouts = []
@@ -239,28 +296,35 @@ function draw() {
   ctx.globalAlpha = 1
 }
 
-onMounted(async () => {
+function beginPreload() {
+  if (preloadPromise) return preloadPromise
+  preloadStarted = true
+  preloadPromise = preloadImages().then((loaded) => {
+    if (!isActive) return []
+    images = loaded
+    // A single failed petal must not prevent the ambient system from running
+    // with the remaining successfully decoded assets.
+    imagesReady = images.length > 0
+    return images
+  }).finally(() => {
+    preloadStarted = false
+    preloadPromise = null
+  })
+  return preloadPromise
+}
+
+onMounted(() => {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
   setupCanvas()
   resizeHandler = () => setupCanvas()
   window.addEventListener('resize', resizeHandler)
 
-  const loaded = await preloadImages()
-  images = loaded.filter(Boolean)
-  imagesReady = images.length === PETAL_SOURCES.length
-  if (!imagesReady) return
-
-  lastTime = performance.now()
-  rafId = requestAnimationFrame(tick)
-
-  if (pendingStart) {
-    start(pendingStart)
-    pendingStart = null
-  }
 })
 
 onUnmounted(() => {
+  isActive = false
+  lifecycleToken += 1
   if (rafId) cancelAnimationFrame(rafId)
   if (gustTimer) clearTimeout(gustTimer)
   spawnTimeouts.forEach((t) => clearTimeout(t))
@@ -268,6 +332,7 @@ onUnmounted(() => {
   particles = []
   started = false
   imagesReady = false
+  pendingStart = null
   if (resizeHandler) window.removeEventListener('resize', resizeHandler)
 })
 

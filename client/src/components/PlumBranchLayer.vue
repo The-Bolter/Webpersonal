@@ -3,7 +3,7 @@
     <div ref="recoilRef" class="plum-recoil">
       <div ref="wrapperRef" class="plum-wrapper">
         <div ref="innerRef" class="plum-inner">
-          <img :src="plumSrc" alt="" class="plum-image" />
+          <img :src="plumSrc" alt="" class="plum-image" fetchpriority="high" />
 
           <div
             v-for="f in flowers"
@@ -31,7 +31,7 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import gsap from 'gsap'
-import plumSrc from '../assets/index/plum/plum-branch.png'
+import plumSrc from '../assets/index/plum/plum-branch.lossless.webp'
 import { useAppStore } from '../store'
 
 const emit = defineEmits(['guide-done'])
