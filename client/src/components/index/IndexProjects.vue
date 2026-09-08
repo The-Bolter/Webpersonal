@@ -2,26 +2,31 @@
   <div class="sheet-content">
     <p class="sheet-eyebrow">02 · 精选项目</p>
     <div class="proj-row">
-      <router-link
+      <a
         v-for="p in projects"
         :key="p.title"
-        to="/projects"
+        :href="p.href"
+        target="_blank"
+        rel="noopener noreferrer"
         class="proj-item"
       >
         <h3 class="proj-title">{{ p.title }}</h3>
         <p class="proj-tags">{{ p.tags.join(' / ') }}</p>
         <p class="proj-desc">{{ p.desc }}</p>
-        <span class="proj-link">查看项目 →</span>
-      </router-link>
+        <span class="proj-link">查看项目 ↗</span>
+      </a>
     </div>
   </div>
 </template>
 
 <script setup>
 const projects = [
-  { title: 'AI 情报系统', tags: ['AI', '数据', '自动化'], desc: '自动采集 AI 与游戏行业热点，完成分类、评分、筛选与 AI 分析。' },
-  { title: 'KOL 建联 Agent', tags: ['AI', 'Agent', '增长'], desc: '将达人筛选、数据整理、建联分发等流程，拆解成可执行的 AI 工作流。' },
-  { title: '个人知识库', tags: ['AI', '产品', '知识管理'], desc: '将分散的资料转化为可检索、可管理、持续维护的个人知识系统。' }
+  {
+    title: 'AI 游戏情报系统',
+    tags: ['AI', '数据', '自动化'],
+    desc: '聚合 AI 技术趋势、开源项目与游戏运营热点的智能情报系统。',
+    href: 'https://ai-intelligence-hub.pages.dev'
+  }
 ]
 </script>
 
@@ -37,7 +42,7 @@ const projects = [
 
 .proj-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: minmax(0, 68%);
   gap: var(--space-lg);
   text-align: left;
 }
